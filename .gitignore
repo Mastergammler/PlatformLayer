@@ -1,0 +1,10 @@
+# ignore output directories
+publish
+release
+.cache
+.build
+.obj
+log.txt
+logs
+
+compile_commands.json
