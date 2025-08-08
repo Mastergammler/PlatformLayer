@@ -17,5 +17,4 @@ struct Logger
 extern Logger logger;
 extern LogSettings logSettings;
 
-string format(const string message, ...);
 string get_time_str(const char* format = "%Y-%m-%d %H:%M:%S");

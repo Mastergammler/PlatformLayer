@@ -1,8 +1,6 @@
 #include "imports.h"
 #include "input.cpp"
 #include "module.h"
-#include <windef.h>
-#include <wingdi.h>
 
 // TODO: handle x-box-controller input
 

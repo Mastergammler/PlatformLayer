@@ -6,8 +6,8 @@
 struct KeyInput
 {
     /**
-     * Name of the key used, that is user understandable
-     * Name that can be used in text, etc
+     * Name of the key used, that is user understandable Name that can be used
+     * in text, etc
      */
     string key_name = "init";
 

@@ -1,0 +1,29 @@
+#include "../../engine.h"
+#include "../internal.h"
+
+void platform_init()
+{
+    vector<string> cmdArgs;
+    win32_read_cmd_args(cmdArgs);
+
+    for (int i = 0; i < cmdArgs.size(); i++)
+        Logf("[ARG] %s", cmdArgs[i].c_str());
+}
+
+void platform_dispose()
+{
+}
+
+void platform_open_window()
+{
+    win32_open_window("Loading ...", Window.hInstance, engine_stop);
+}
+void platform_window_title(string title)
+{
+    win32_set_window_title(title);
+}
+
+void platform_handle_messages()
+{
+    win32_handle_messages();
+}

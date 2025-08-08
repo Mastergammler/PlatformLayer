@@ -63,6 +63,7 @@ void InitLogger(Logger& logger, const string& log_filePath)
     });
 }
 
+// TODO: create logging dir if non existent!
 void Logger_Init(LogSettings settings)
 {
     logSettings = settings;

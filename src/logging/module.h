@@ -14,3 +14,5 @@ void Logger_Dispose();
 
 void Log(const std::string msg);
 void Logf(const std::string msg, ...);
+
+std::string format(const std::string message, ...);
