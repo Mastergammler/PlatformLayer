@@ -4,6 +4,7 @@
 //  tell the platform layer what kind of window to open?
 //  How to input the window options???
 
+#include "../input/keyboard.h"
 #include "../logging/module.h"
 #include "imports.h"
 

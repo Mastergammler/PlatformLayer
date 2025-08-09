@@ -64,7 +64,7 @@ void InitLogger(Logger& logger, const string& log_filePath)
 }
 
 // TODO: create logging dir if non existent!
-void Logger_Init(LogSettings settings)
+void logger_initialize(LogSettings settings)
 {
     logSettings = settings;
     InitOutputStreams();
@@ -74,10 +74,10 @@ void Logger_Init(LogSettings settings)
                             settings.log_dir.c_str(),
                             date.c_str());
     InitLogger(logger, logFile);
-    Logf("----- << %s >> -----", date.c_str());
+    logf("----- << %s >> -----", date.c_str());
 }
 
-void Logger_Dispose()
+void logger_dispose()
 {
     logger.log_condition.notify_one();
     logger.running = false;

@@ -11,7 +11,7 @@ void Debug(const string msg)
     cout << logSettings.log_prefix << " " << msg << NL;
 }
 
-void Log(const string s)
+void log(const string s)
 {
     Debug(s);
     {
@@ -21,7 +21,7 @@ void Log(const string s)
     logger.log_condition.notify_one();
 }
 
-void Logf(const string message, ...)
+void logf(const string message, ...)
 {
     char buffer[256];
     va_list args;

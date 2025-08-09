@@ -1,25 +1,19 @@
 #include "../internal.h"
+#include <cassert>
 
 static function<void()> ExitProgram;
 static HWND ActiveWindow;
 
-/**
- *  Requires open window to be called before !
- */
 void win32_set_window_title(string title)
 {
+    assert(ActiveWindow);
+
     SetWindowText(ActiveWindow, title.c_str());
 }
 
-/**
- *  Requires open window to be called before !
- */
 void win32_handle_messages()
 {
-    // TODO: TO-ENGINE: this should be part of the engine layer?!
-    // we need to reset the single frame states before handling new messages
-    // else these states could be persisted multiple rounds
-    // Input_ResetKeyStates();
+    assert(ActiveWindow);
 
     MSG message;
     while (PeekMessage(&message, ActiveWindow, 0, 0, PM_REMOVE))
@@ -101,19 +95,32 @@ LRESULT CALLBACK WindowEvents(HWND hwnd,
         }
         break;
         case WM_ACTIVATEAPP: OutputDebugStringA("WM_ACTIVEAPP\n"); break;
-        // sys keydown is for things like Alt+F4
+        // SYS Keydown will trigger when using special keys like ALT
+        // But we want to handle them together with the normal key events
         case WM_SYSKEYDOWN:
         case WM_SYSKEYUP:
-        {
-            // handle as default right now
-            result = DefWindowProc(hwnd, uMsg, wParam, lParam);
-        }
-        break;
         case WM_KEYUP:
         case WM_KEYDOWN:
         {
-            // TODO: input handling
-            // HandleKeyboardInput(lParam, wParam);
+            /*
+             * lParam is a bit set,
+             * 29: down state alt key this frame (0: up, 1: down)
+             * 30: key down previous event ( 0: up, 1: down)
+             * 31: transition state (0: DOWN, 1: UP )
+             *     the transition state is the current press but inverted
+             */
+            bool wasDown = ((lParam & (1 << 30)) != 0);
+            bool isDown = ((lParam & (1 << 31)) == 0);
+            uint32_t vkCode = wParam;
+
+            // for alt key implementation we need to do a bit more
+            // because we might need to check isDown vs wasDown differently
+            // also keycode handling might be different (VK_MENU)
+            // bool altKeyWasDown = (lParam & (1 << 29)) != 0;
+
+            if (isDown == wasDown) return 0;
+
+            input_notify_key({wasDown, isDown, vkCode});
         }
         break;
         default:

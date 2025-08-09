@@ -7,7 +7,7 @@ void platform_init()
     win32_read_cmd_args(cmdArgs);
 
     for (int i = 0; i < cmdArgs.size(); i++)
-        Logf("[ARG] %s", cmdArgs[i].c_str());
+        logf("[ARG] %s", cmdArgs[i].c_str());
 }
 
 void platform_dispose()
@@ -23,6 +23,8 @@ void platform_window_title(string title)
     win32_set_window_title(title);
 }
 
+// TODO: needs to return key states?
+// -> does this differ from controller input?
 void platform_handle_messages()
 {
     win32_handle_messages();
