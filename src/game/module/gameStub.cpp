@@ -52,8 +52,6 @@ void game_update()
         input_init_keyboard(&GameInputs, KEYMAPPING_FILE, WIN_KEYCODE_FILE);
         log("Keybindings reloaded!");
     }
-
-    sleep_for(milliseconds(50));
 }
 
 void game_dispose()

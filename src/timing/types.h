@@ -1,10 +1,22 @@
-#include "imports.h"
+#pragma once
+
+#include <chrono>
+
+using timepoint = std::chrono::steady_clock::time_point;
 
 struct Clock
 {
+    int target_fps;
+
     int fps;
     int fps_min = 10000;
     int fps_max = 0;
+
+    /**
+     * frame time (since the last frame)
+     * Unit: ms
+     */
+    float frame_time;
 
     /**
       Time since the last update call
@@ -13,7 +25,7 @@ struct Clock
      * This is the actual passed time, so all IO system based things
      * should use this time
      *
-     * Unit s
+     * Unit: s
      */
     float delta_time_real;
 
@@ -32,12 +44,14 @@ struct Clock
     float delta_max = 0;
 
     /**
-     * Limiter for updating the fps text
-     * Too high a frequency is hard to read
+     * For counting the currently elapsed time
+     * for threshold updates
+     *
+     * NOTE: not sure if this is the correct solution
+     * since we need to modify this value in order to
+     * update use it, so it can only be used once at a time
      */
-    float fps_update_threshold = 0.25;
     float time_counter;
-    LARGE_INTEGER frequency;
-    LARGE_INTEGER last_time;
-    LARGE_INTEGER start_time;
+    timepoint last_time;
+    timepoint start_time;
 };

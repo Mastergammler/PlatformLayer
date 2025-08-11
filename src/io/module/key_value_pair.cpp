@@ -15,6 +15,9 @@ int parse_hex_value(const string input, const string filePath)
 
 void parse_file(const string filePath, function<void(string, string)> insert)
 {
+    Clock timer = {};
+    timer_start(timer);
+
     ifstream file(filePath);
 
     if (!file)
@@ -37,9 +40,12 @@ void parse_file(const string filePath, function<void(string, string)> insert)
     bool ignoreRest = false;
     bool eoVal = false;
 
+    int totalBytesRead = 0;
+
     while (file.read(buffer, bufferSize) || file.gcount() > 0)
     {
         int bytesRead = file.gcount();
+        totalBytesRead += bytesRead;
 
         for (int i = 0; i < bytesRead; i++)
         {
@@ -98,6 +104,12 @@ void parse_file(const string filePath, function<void(string, string)> insert)
     }
 
     file.close();
+
+    float parsingTime = time_since_start(timer);
+    logf("Parsed file: '%s' (%i bytes) within %.2f ms",
+         filePath.c_str(),
+         totalBytesRead,
+         parsingTime);
 }
 
 void parse_kvp_file(unordered_map<string, string>* map, const string filePath)
