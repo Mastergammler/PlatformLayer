@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../define.h"
 #include <cassert>
 #include <fstream>
 #include <functional>

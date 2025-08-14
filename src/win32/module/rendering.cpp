@@ -6,7 +6,8 @@ void platform_draw(DrawBuffer& buffer)
     BITMAPINFO info = {};
     info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
     info.bmiHeader.biWidth = buffer.width;
-    info.bmiHeader.biHeight = buffer.height;
+    // negative height = drawing top to bottom
+    info.bmiHeader.biHeight = -buffer.height;
     info.bmiHeader.biPlanes = 1;
     info.bmiHeader.biBitCount = 32;
     info.bmiHeader.biCompression = BI_RGB;

@@ -19,14 +19,15 @@ void set_fps_text()
 
 void engine_start()
 {
+    MainClock.target_fps = 144;
+
     logger_initialize({});
     platform_init();
     platform_open_window();
-    game_init();
     timer_start(MainClock);
     rendering_init_buffer(Buffer, 800, 600);
 
-    MainClock.target_fps = 144;
+    game_init();
 
     while (Running)
     {

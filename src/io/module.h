@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../rendering/types.h"
+
 #include <string>
 #include <unordered_map>
 
@@ -13,4 +15,4 @@ void parse_kvp_file(std::unordered_map<std::string, std::string>* map,
 void parse_kvp_file(std::unordered_map<std::string, uint32_t>* map,
                     const std::string filePath);
 
-void load_sprite(std::string path);
+void load_sprite(SpriteBuffer& buffer, std::string path);

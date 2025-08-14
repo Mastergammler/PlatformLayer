@@ -1,11 +1,16 @@
 #include "../internal.h"
 
-const int KEYBOARD_INPUTS = 5;
+const int KEYBOARD_INPUTS = 9;
 
 static int helpcounter = 0;
 static bool showBlue = true;
 static GameInputState GameInputs = {new KeyInput[KEYBOARD_INPUTS],
                                     KEYBOARD_INPUTS};
+
+static SpriteBuffer sprites[2];
+static SpriteBuffer Grass = {};
+static SpriteBuffer Plate = {};
+static v2 DrawPosition = {0, 0};
 
 // TODO: MOVETO parsing
 string TrimToVariableName(string s)
@@ -23,7 +28,19 @@ void game_init()
     GameInputs.Jump.identifier = TrimToVariableName(NAMEOF(GameInputs.Jump));
     GameInputs.ReloadConfig.identifier = TrimToVariableName(
                                             NAMEOF(GameInputs.ReloadConfig));
+
+    GameInputs.Up.identifier = TrimToVariableName(NAMEOF(GameInputs.Up));
+    GameInputs.Down.identifier = TrimToVariableName(NAMEOF(GameInputs.Down));
+    GameInputs.Left.identifier = TrimToVariableName(NAMEOF(GameInputs.Left));
+    GameInputs.Right.identifier = TrimToVariableName(NAMEOF(GameInputs.Right));
+
     input_init_keyboard(&GameInputs, KEYMAPPING_FILE, WIN_KEYCODE_FILE);
+
+    load_sprite(Grass, "res/img/tile-grass.png");
+    load_sprite(Plate, "res/img/tile-plate.bmp");
+
+    if (!Grass.loaded) logf("Unable to load tile: %s", Grass.file.c_str());
+    if (!Plate.loaded) logf("Unable to load tile: %s", Plate.file.c_str());
 
     log("Game initalized");
 }
@@ -44,16 +61,22 @@ void game_update()
     }
     else if (GameInputs.Jump.pressed)
     {
-        if (showBlue)
-        {
-            rendering_clear_screen(Buffer, BG_BLUE);
-        }
-        else
-        {
-            rendering_clear_screen(Buffer, BG_COLOR);
-        }
 
         showBlue = !showBlue;
+    }
+
+    if (GameInputs.Up.pressed) DrawPosition.y -= Grass.height;
+    if (GameInputs.Down.pressed) DrawPosition.y += Grass.height;
+    if (GameInputs.Left.pressed) DrawPosition.x -= Grass.width;
+    if (GameInputs.Right.pressed) DrawPosition.x += Grass.width;
+
+    if (showBlue)
+    {
+        rendering_draw_sprite(Buffer, Grass, DrawPosition);
+    }
+    else
+    {
+        rendering_draw_sprite(Buffer, Plate, DrawPosition);
     }
 
     // hot reload functionality

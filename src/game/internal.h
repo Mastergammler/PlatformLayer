@@ -2,6 +2,7 @@
 
 #include "../engine.h"
 #include "../input/keyboard.h"
+#include "../io/module.h"
 #include "../logging/module.h"
 #include "../platform.h"
 #include "../rendering/module.h"
