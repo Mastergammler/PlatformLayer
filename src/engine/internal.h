@@ -6,4 +6,5 @@
 #include "../io/module.h"
 #include "../logging/module.h"
 #include "../platform.h"
+#include "../rendering/module.h"
 #include "../timing/module.h"

@@ -29,3 +29,12 @@ void platform_handle_messages()
 {
     win32_handle_messages();
 }
+
+void* platform_alloc(size_t size)
+{
+    return VirtualAlloc(0, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+}
+void platform_free(void* mem, size_t size)
+{
+    VirtualFree(mem, size, MEM_RELEASE);
+}

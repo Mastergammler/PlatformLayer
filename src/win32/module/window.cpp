@@ -1,5 +1,6 @@
 #include "../internal.h"
-#include <cassert>
+
+HDC WindowContext;
 
 static function<void()> ExitProgram;
 static HWND ActiveWindow;
@@ -54,6 +55,7 @@ void win32_open_window(string name, HINSTANCE instance, function<void()> onExit)
                                 instance,
                                 0);
     ExitProgram = onExit;
+    WindowContext = GetDC(ActiveWindow);
 }
 
 LRESULT CALLBACK WindowEvents(HWND hwnd,

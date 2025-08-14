@@ -4,9 +4,12 @@
 #include "../input/keyboard.h"
 #include "../logging/module.h"
 #include "../platform.h"
+#include "../rendering/module.h"
 #include "imports.h"
 #include "module.h"
 #include "types.h"
+
+extern DrawBuffer Buffer;
 
 #define NAMEOF(x) #x
 

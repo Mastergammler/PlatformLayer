@@ -3,6 +3,7 @@
 const int KEYBOARD_INPUTS = 5;
 
 static int helpcounter = 0;
+static bool showBlue = true;
 static GameInputState GameInputs = {new KeyInput[KEYBOARD_INPUTS],
                                     KEYBOARD_INPUTS};
 
@@ -43,7 +44,16 @@ void game_update()
     }
     else if (GameInputs.Jump.pressed)
     {
-        log("Jumping up and down");
+        if (showBlue)
+        {
+            rendering_clear_screen(Buffer, BG_BLUE);
+        }
+        else
+        {
+            rendering_clear_screen(Buffer, BG_COLOR);
+        }
+
+        showBlue = !showBlue;
     }
 
     // hot reload functionality

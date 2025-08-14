@@ -2,6 +2,7 @@
 
 static bool Running = true;
 static Clock MainClock = {};
+DrawBuffer Buffer = {};
 
 using namespace std;
 
@@ -23,6 +24,7 @@ void engine_start()
     platform_open_window();
     game_init();
     timer_start(MainClock);
+    rendering_init_buffer(Buffer, 800, 600);
 
     MainClock.target_fps = 144;
 
@@ -32,7 +34,7 @@ void engine_start()
         input_reset_all_keys();
         platform_handle_messages();
         game_update();
-        // TODO: render step
+        platform_draw(Buffer);
         set_fps_text();
         timer_wait_till_next_frame(MainClock);
     }

@@ -6,6 +6,7 @@
 
 #include "../input/keyboard.h"
 #include "../logging/module.h"
+#include "../rendering/module.h"
 #include "imports.h"
 
 struct WindowParams
@@ -17,6 +18,7 @@ struct WindowParams
 };
 
 extern WindowParams Window;
+extern HDC WindowContext;
 
 /**
  * Reads the cmd arguments that where put forth to the window
