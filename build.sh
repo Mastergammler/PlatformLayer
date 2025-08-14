@@ -11,6 +11,7 @@ SOURCE_FILE="build/compile.cpp"
 PRECOMPILE_FILE="src/imports.h"
 
 DEFAULT_BUILD_DIR=".build"
+DEFAULT_EXEC_NAME="platform-demo.exe"
 PRECOMPILE_OUTPUT=".obj/imports.h.pch"
 
 if [[ "$1" =~ ^- ]] || [ -z "$1" ]; then
@@ -20,8 +21,7 @@ else
 fi
 
 if [[ "$2" =~ ^- ]] || [ -z "$2" ]; then
-    echo expecting the executable name as 2nd argument
-    exit -1;
+    EXEC_NAME=$DEFAULT_EXEC_NAME
 else
     EXEC_NAME=$2
 fi
@@ -58,26 +58,34 @@ SDK_LIBS="-L$WIN_LIB/crt/x64 -L$WIN_LIB/um/x64 -L$WIN_LIB/ucrt/x64 -L$MSVC/lib/x
 # and for precompiling the headers its 2s (3500ms vs 1500ms)
 # But 14 is the minimum required one so that the windows headers still work
 # Even thou, it seems, this adds a whole bunch of compile time (maybe this is the major thing that introduces it?)
-#CPP_STD="-std=c++14"
 CPP_STD="-std=c++14"
-INCLUDES="$MSVC_INCLUDES $SDK_INCLUDES"
-LIB_PATHS="$SDK_LIBS"
+# LLVM first that clang intrinsics will be used!
+# MSVC handles intrinsics differently than clang, so clang 
+# is not able to use MSVC intrinsics headers
+INCLUDES="-isystem $LLVM/include $MSVC_INCLUDES $SDK_INCLUDES"
+LIB_PATHS="$SDK_LIBS $MSVC_LIBS"
 INCLUDE_PRECOMPILED="-include-pch $PRECOMPILE_OUTPUT"
 TARGET="-target x86_64-pc-win32 -fuse-ld=lld"
 #LINKED_LIBS="-lgdi32 -luser32 -lole32 -lshell32 -lwinmm -lmfreadwrite -lmfplat -lmfuuid -lxaudio2"
 LINKED_LIBS="-lgdi32 -luser32 -lshell32 -lwinmm"
-OPTIONS="$DEBUG -Wall -Wpedantic -Wno-c99-extensions -Wno-c++17-extensions $PROFILE -DDEBUG" 
+# if any library uses SIMD we need to enable intrinsics (and include the LLVM intrinsic headers, see above)
+# we also need to enable mmx since the target architecture is x86_64-win32 (for legacy support) 
+INTRINSICS="-mmmx -msse2"
+OPTIONS="$DEBUG -Wall -Wpedantic -Wno-c99-extensions -Wno-c++17-extensions $PROFILE -DDEBUG $INTRINSICS" 
 
 # -D_AMD64_ or -DX86_ = 1 is required for some windows headers
-MSVC_DEFAULTS="$TARGET $INCLUDES -D_AMD64_=1"
+MSVC_DEFAULTS="$TARGET $INCLUDES -D_AMD64_=1" #-D_MSC_VER=1933"
 
 PRE_COMPILE_START=$(date +%s%N)
 
 # h for headers
 if [[ "$*" == *"-h"* || "$*" == *"-o"* ]]; then
-    # currently not needed
-    #clang -c $C_FILES -o $C_FILES_OUTPUT $MSVC_DEFAULTS -w $OPTIMIZATION #-msse $LIB_PATHS $LINKED_LIBS
-    clang++ -x c++-header $PRECOMPILE_FILE -o $PRECOMPILE_OUTPUT $MSVC_DEFAULTS $CPP_STD $DEBUG $OPTIMIZATION
+    #clang -c $C_FILES -o $C_FILES_OUTPUT $MSVC_DEFAULTS -w $OPTIMIZATION $INTRINSICS 
+    clang++ -x c++-header $PRECOMPILE_FILE -o $PRECOMPILE_OUTPUT $MSVC_DEFAULTS $CPP_STD $DEBUG $OPTIMIZATION $INTRINSICS 
+
+    if [ $? -ne 0 ]; then
+        exit 1
+    fi
 fi
 
 PRE_COMPILE_END=$(date +%s%N)
