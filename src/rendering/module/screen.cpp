@@ -8,6 +8,12 @@ void rendering_init_buffer(DrawBuffer& buffer, int width, int height)
     buffer.size = buffer.pixel_count * sizeof(u32);
     buffer.memory = platform_alloc(buffer.size);
 
+    logf("Draw area: %ix%i (%i px - %i KB)",
+         buffer.width,
+         buffer.height,
+         buffer.pixel_count,
+         buffer.size / 1024);
+
     rendering_clear_screen(buffer, BG_BLUE);
 }
 

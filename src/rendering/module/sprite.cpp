@@ -1,11 +1,27 @@
 #include "../internal.h"
 
+void rendering_fill_screen(DrawBuffer& buffer, SpriteBuffer& sprite)
+{
+    int columns = buffer.width / sprite.width;
+    int rows = buffer.height / sprite.height;
+
+    for (int y = 0; y < rows; y++)
+    {
+        for (int x = 0; x < columns; x++)
+        {
+            rendering_draw_sprite(buffer,
+                                  sprite,
+                                  v2{x * sprite.width, y * sprite.height});
+        }
+    }
+}
 void rendering_draw_sprite(DrawBuffer& buffer, SpriteBuffer& sprite, v2 pos)
 {
     if (pos.x >= buffer.width || pos.x < 0 - sprite.width ||
         pos.y >= buffer.height || pos.y < 0 - sprite.height)
         return;
 
+    // clip checking
     int xStart = pos.x < 0 ? 0 : pos.x;
     int xEnd = pos.x + sprite.width;
     int xBound = xEnd >= buffer.width ? buffer.width : xEnd;
@@ -17,6 +33,10 @@ void rendering_draw_sprite(DrawBuffer& buffer, SpriteBuffer& sprite, v2 pos)
 
     int startIdx = yStart * buffer.width + xStart;
 
+    // NOTE:
+    // because we loaded the pixels as individual bytes,
+    // and we're on little endian the byte order is reveresd!
+    // ARGB!
     u32* bufferStart = (u32*)buffer.memory + startIdx;
     u32* bitmapStart = (u32*)sprite.pixels;
 
@@ -29,7 +49,16 @@ void rendering_draw_sprite(DrawBuffer& buffer, SpriteBuffer& sprite, v2 pos)
         bitmapPixel = bitmapStart + y * sprite.width;
         for (int x = 0; x < xVisible; x++)
         {
-            *bufferPixel = *bitmapPixel;
+            // NOTE: since Win GDI doesn't handle transparency
+            // we need to implement it ourselfes here
+            // we just ignore pixels who are fully transparent
+            u32 bitmapValue = *bitmapPixel;
+            u8 alpha = (bitmapValue >> 24) & 0xFF;
+            if (alpha != 0)
+            {
+                *bufferPixel = *bitmapPixel;
+            }
+
             bufferPixel++;
             bitmapPixel++;
         }

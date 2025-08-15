@@ -1,6 +1,6 @@
 #include "../internal.h"
 
-void platform_draw(DrawBuffer& buffer)
+void platform_draw(DrawBuffer buffer, WindowInfo winin)
 {
     // TODO: should probably not be created every single time?
     BITMAPINFO info = {};
@@ -15,10 +15,8 @@ void platform_draw(DrawBuffer& buffer)
     StretchDIBits(WindowContext,
                   0,
                   0,
-                  // these are screen dimensions actually
-                  // TODO: input screen dimenions as well
-                  buffer.width,
-                  buffer.height,
+                  winin.display_size.width,
+                  winin.display_size.height,
                   0,
                   0,
                   buffer.width,

@@ -9,7 +9,7 @@
 #include "../rendering/module.h"
 #include "imports.h"
 
-struct WindowParams
+struct Win32Params
 {
     HINSTANCE hInstance;
     HINSTANCE prevInstance;
@@ -17,7 +17,7 @@ struct WindowParams
     int nShowCmd;
 };
 
-extern WindowParams Window;
+extern Win32Params Win32;
 extern HDC WindowContext;
 
 /**
@@ -25,9 +25,9 @@ extern HDC WindowContext;
  */
 void win32_read_cmd_args(std::vector<std::string>& argStore);
 
-// TODO: better options for putting in parameters
 void win32_open_window(std::string name,
                        HINSTANCE instance,
+                       WindowInfo& winin,
                        std::function<void()> onExit);
 
 void win32_handle_messages();

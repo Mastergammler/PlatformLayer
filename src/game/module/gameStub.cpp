@@ -7,9 +7,10 @@ static bool showBlue = true;
 static GameInputState GameInputs = {new KeyInput[KEYBOARD_INPUTS],
                                     KEYBOARD_INPUTS};
 
-static SpriteBuffer sprites[2];
 static SpriteBuffer Grass = {};
 static SpriteBuffer Plate = {};
+static SpriteBuffer Border = {};
+static SpriteBuffer TwoX = {};
 static v2 DrawPosition = {0, 0};
 
 // TODO: MOVETO parsing
@@ -21,6 +22,9 @@ string TrimToVariableName(string s)
 
 void game_init()
 {
+    Clock timer = {};
+    timer_start(timer);
+
     GameInputs.Exit.identifier = TrimToVariableName(NAMEOF(GameInputs.Exit));
     GameInputs.Action.identifier = TrimToVariableName(
                                             NAMEOF(GameInputs.Action));
@@ -38,11 +42,11 @@ void game_init()
 
     load_sprite(Grass, "res/img/tile-grass.png");
     load_sprite(Plate, "res/img/tile-plate.bmp");
+    load_sprite(Border, "res/img/tile-border.png");
+    load_sprite(TwoX, "res/img/s64x64-test.png");
 
-    if (!Grass.loaded) logf("Unable to load tile: %s", Grass.file.c_str());
-    if (!Plate.loaded) logf("Unable to load tile: %s", Plate.file.c_str());
-
-    log("Game initalized");
+    float elapsed = time_since_start(timer);
+    logf("Game initalized within %.1f ms", elapsed);
 }
 
 void game_update()
@@ -61,7 +65,6 @@ void game_update()
     }
     else if (GameInputs.Jump.pressed)
     {
-
         showBlue = !showBlue;
     }
 
@@ -70,14 +73,13 @@ void game_update()
     if (GameInputs.Left.pressed) DrawPosition.x -= Grass.width;
     if (GameInputs.Right.pressed) DrawPosition.x += Grass.width;
 
-    if (showBlue)
-    {
-        rendering_draw_sprite(Buffer, Grass, DrawPosition);
-    }
-    else
-    {
-        rendering_draw_sprite(Buffer, Plate, DrawPosition);
-    }
+    rendering_clear_screen(Buffer, BG_BLUE);
+
+    SpriteBuffer& bgSprite = showBlue ? Grass : Plate;
+    SpriteBuffer& playerSprite = showBlue ? Plate : Grass;
+
+    rendering_fill_screen(Buffer, Border);
+    rendering_draw_sprite(Buffer, playerSprite, DrawPosition);
 
     // hot reload functionality
     if (GameInputs.ReloadConfig.released)

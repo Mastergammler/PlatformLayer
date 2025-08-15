@@ -3,6 +3,7 @@
 
 void platform_init()
 {
+
     vector<string> cmdArgs;
     win32_read_cmd_args(cmdArgs);
 
@@ -14,9 +15,9 @@ void platform_dispose()
 {
 }
 
-void platform_open_window()
+void platform_open_window(WindowInfo winin)
 {
-    win32_open_window("Loading ...", Window.hInstance, engine_stop);
+    win32_open_window("Loading ...", Win32.hInstance, winin, engine_stop);
 }
 void platform_window_title(string title)
 {

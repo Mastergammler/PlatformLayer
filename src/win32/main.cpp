@@ -1,14 +1,14 @@
 #include "../engine.h"
 #include "internal.h"
 
-WindowParams Window;
+Win32Params Win32;
 
 int WinMain(HINSTANCE hInstance,
             HINSTANCE hPrevInstance,
             LPSTR lpCmdLine,
             int nShowCmd)
 {
-    Window = {hInstance, hPrevInstance, lpCmdLine, nShowCmd};
+    Win32 = {hInstance, hPrevInstance, lpCmdLine, nShowCmd};
 
     engine_start();
 

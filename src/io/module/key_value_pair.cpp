@@ -106,7 +106,7 @@ void parse_file(const string filePath, function<void(string, string)> insert)
     file.close();
 
     float parsingTime = time_since_start(timer);
-    logf("Parsed file: '%s' (%i bytes) within %.2f ms",
+    logf("Parsed file: '%s' (%i bytes) within %.3f ms",
          filePath.c_str(),
          totalBytesRead,
          parsingTime);

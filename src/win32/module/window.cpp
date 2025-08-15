@@ -1,9 +1,12 @@
 #include "../internal.h"
+#include <winuser.h>
 
 HDC WindowContext;
 
 static function<void()> ExitProgram;
 static HWND ActiveWindow;
+static v2 WindowSize;
+static bool AllowWindowResize;
 
 void win32_set_window_title(string title)
 {
@@ -24,7 +27,10 @@ void win32_handle_messages()
     }
 }
 
-void win32_open_window(string name, HINSTANCE instance, function<void()> onExit)
+void win32_open_window(string name,
+                       HINSTANCE instance,
+                       WindowInfo& winin,
+                       function<void()> onExit)
 {
     WNDCLASS winClass = {};
     winClass.style = CS_HREDRAW | CS_VREDRAW;
@@ -32,24 +38,30 @@ void win32_open_window(string name, HINSTANCE instance, function<void()> onExit)
     winClass.lpfnWndProc = WindowEvents;
     winClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
 
-    int winWidth = 800;
-    int winHeight = 600;
-
     int screenWidth = GetSystemMetrics(SM_CXSCREEN);
     int screenHegiht = GetSystemMetrics(SM_CYSCREEN);
 
-    int centerX = (screenWidth - winWidth) / 2;
-    // TODO: - taskbar height etc
-    int centerY = (screenHegiht - winHeight) / 2;
+    int centerX = (screenWidth - winin.display_size.width) / 2;
+    int centerY = (screenHegiht - winin.display_size.height) / 2;
 
     RegisterClass(&winClass);
+
+    DWORD dwStyle = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
+    RECT rect = {0, 0, winin.display_size.width, winin.display_size.height};
+    AdjustWindowRect(&rect, dwStyle, false);
+
+    // set window size before the window is created
+    // else the WindowEvents callback might start with 0,0 on creation
+    winin.window_size = v2{rect.right - rect.left, rect.bottom - rect.top};
+    WindowSize = winin.window_size;
+    AllowWindowResize = winin.allow_resize;
     ActiveWindow = CreateWindow(winClass.lpszClassName,
                                 name.c_str(),
-                                WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+                                dwStyle,
                                 centerX,
                                 centerY,
-                                winWidth,
-                                winHeight,
+                                winin.window_size.width,
+                                winin.window_size.height,
                                 0,
                                 0,
                                 instance,
@@ -74,14 +86,17 @@ LRESULT CALLBACK WindowEvents(HWND hwnd,
         break;
         case WM_GETMINMAXINFO:
         {
-            // supposedly setting size constraints
-            // requires WS_THICKFRAME
-            // doesn't seem to work with wine
-            MINMAXINFO* mmi = (MINMAXINFO*)lParam;
-            mmi->ptMinTrackSize.x = 400;
-            mmi->ptMinTrackSize.y = 300;
-            mmi->ptMaxTrackSize.x = 1024;
-            mmi->ptMaxTrackSize.y = 768;
+            // NOTE: i3 is still able to override this settings
+            //  since it hooks into the linux platform api directly
+            //  and can therefore circumvent the windows based constraints
+            if (!AllowWindowResize)
+            {
+                MINMAXINFO* mmi = (MINMAXINFO*)lParam;
+                mmi->ptMinTrackSize.x = WindowSize.x;
+                mmi->ptMinTrackSize.y = WindowSize.y;
+                mmi->ptMaxTrackSize.x = WindowSize.x;
+                mmi->ptMaxTrackSize.y = WindowSize.y;
+            }
         }
         break;
         case WM_SETFOCUS:

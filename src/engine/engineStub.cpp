@@ -3,8 +3,20 @@
 static bool Running = true;
 static Clock MainClock = {};
 DrawBuffer Buffer = {};
+static v2 TileSize = {32, 32};
+static v2 ScreenTiles = {10, 6};
+static WindowInfo WinIn = {3};
 
 using namespace std;
+
+void init_win_size()
+{
+    WinIn.draw_size = (TileSize * ScreenTiles);
+    WinIn.display_size = WinIn.draw_size * WinIn.scale;
+    logf("Drawsize %s, DisplaySize %s",
+         str(WinIn.draw_size).c_str(),
+         str(WinIn.display_size).c_str());
+}
 
 void set_fps_text()
 {
@@ -22,10 +34,13 @@ void engine_start()
     MainClock.target_fps = 144;
 
     logger_initialize({});
+    init_win_size();
     platform_init();
-    platform_open_window();
+    platform_open_window(WinIn);
     timer_start(MainClock);
-    rendering_init_buffer(Buffer, 800, 600);
+    rendering_init_buffer(Buffer,
+                          WinIn.draw_size.width,
+                          WinIn.draw_size.height);
 
     game_init();
 
@@ -35,7 +50,7 @@ void engine_start()
         input_reset_all_keys();
         platform_handle_messages();
         game_update();
-        platform_draw(Buffer);
+        platform_draw(Buffer, WinIn);
         set_fps_text();
         timer_wait_till_next_frame(MainClock);
     }
