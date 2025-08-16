@@ -56,6 +56,16 @@ inline v2 operator*(const v2 vec, const v2 other)
     return v2{vec.x * other.x, vec.y * other.y};
 }
 
+inline v2 operator/(const v2 vec, const v2 other)
+{
+    return v2{vec.x / other.x, vec.y / other.y};
+}
+
+inline v2 operator/(const v2 vec, const float factor)
+{
+    return v2{(int)(vec.x / factor), (int)(vec.y / factor)};
+}
+
 inline v2 operator+(const v2 vec, const v2 other)
 {
     return v2{vec.x + other.x, vec.y + other.y};

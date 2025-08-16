@@ -1,7 +1,6 @@
 #pragma once
 
 #include <condition_variable>
-#include <consoleapi.h>
 #include <cstdarg>
 #include <fstream>
 #include <iomanip>

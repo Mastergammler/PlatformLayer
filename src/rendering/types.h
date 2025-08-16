@@ -14,15 +14,40 @@ struct DrawBuffer
     size_t size;
 };
 
-struct SpriteBuffer
+struct PixelBuffer
 {
     bool loaded;
     string file;
-
-    int width;
-    int height;
+    Dim size;
     int channels;
     // TODO: should store the data as array if possible
     //  that we can control allocation
     u8* pixels;
+};
+
+struct SpriteSheet
+{
+    bool loaded;
+
+    Dim tile_size;
+    int channels;
+
+    Dim source_image_size;
+    v2 grid_size;
+
+    PixelBuffer* tiles;
+    int tile_count;
+};
+
+/*
+ * Creates a logic unit of what should be drawn
+ * A sprite can be multiple tiles wide or height
+ */
+struct Sprite
+{
+    /* size in tiles */
+    v2 size;
+    int sheet_start_index;
+
+    SpriteSheet* sheet;
 };

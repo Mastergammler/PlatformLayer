@@ -1,5 +1,4 @@
 #include "../internal.h"
-#include <winuser.h>
 
 HDC WindowContext;
 

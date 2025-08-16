@@ -1,9 +1,9 @@
 #include "../internal.h"
 
-void rendering_fill_screen(DrawBuffer& buffer, SpriteBuffer& sprite)
+void rendering_fill_screen(DrawBuffer& buffer, PixelBuffer& sprite)
 {
-    int columns = buffer.width / sprite.width;
-    int rows = buffer.height / sprite.height;
+    int columns = buffer.width / sprite.size.width;
+    int rows = buffer.height / sprite.size.height;
 
     for (int y = 0; y < rows; y++)
     {
@@ -11,22 +11,23 @@ void rendering_fill_screen(DrawBuffer& buffer, SpriteBuffer& sprite)
         {
             rendering_draw_sprite(buffer,
                                   sprite,
-                                  v2{x * sprite.width, y * sprite.height});
+                                  v2{x * sprite.size.width,
+                                     y * sprite.size.height});
         }
     }
 }
-void rendering_draw_sprite(DrawBuffer& buffer, SpriteBuffer& sprite, v2 pos)
+void rendering_draw_sprite(DrawBuffer& buffer, PixelBuffer& sprite, v2 pos)
 {
-    if (pos.x >= buffer.width || pos.x < 0 - sprite.width ||
-        pos.y >= buffer.height || pos.y < 0 - sprite.height)
+    if (pos.x >= buffer.width || pos.x < 0 - sprite.size.width ||
+        pos.y >= buffer.height || pos.y < 0 - sprite.size.height)
         return;
 
     // clip checking
     int xStart = pos.x < 0 ? 0 : pos.x;
-    int xEnd = pos.x + sprite.width;
+    int xEnd = pos.x + sprite.size.width;
     int xBound = xEnd >= buffer.width ? buffer.width : xEnd;
     int yStart = pos.y < 0 ? 0 : pos.y;
-    int yEnd = pos.y + sprite.height;
+    int yEnd = pos.y + sprite.size.height;
     int yBound = yEnd >= buffer.height ? buffer.height : yEnd;
     int xVisible = xBound - xStart;
     int yVisible = yBound - yStart;
@@ -46,7 +47,7 @@ void rendering_draw_sprite(DrawBuffer& buffer, SpriteBuffer& sprite, v2 pos)
     for (int y = 0; y < yVisible; y++)
     {
         bufferPixel = bufferStart + y * buffer.width;
-        bitmapPixel = bitmapStart + y * sprite.width;
+        bitmapPixel = bitmapStart + y * sprite.size.width;
         for (int x = 0; x < xVisible; x++)
         {
             // NOTE: since Win GDI doesn't handle transparency

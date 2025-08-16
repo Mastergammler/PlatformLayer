@@ -1,5 +1,9 @@
 #include "../internal.h"
 
+#if _WIN32
+#include <consoleapi.h>
+#endif
+
 static FILE* std_out = nullptr;
 static FILE* std_err = nullptr;
 
@@ -16,6 +20,8 @@ LogSettings logSettings;
 void InitOutputStreams(bool openConsole = false)
 {
     // pipeing out to the console that starts it
+    // most of this is done with unix automatically
+#if _WIN32
     if (AttachConsole(ATTACH_PARENT_PROCESS))
     {
         freopen_s(&std_out, "CONOUT$", "w", stdout);
@@ -30,6 +36,7 @@ void InitOutputStreams(bool openConsole = false)
     {
         AllocConsole();
     }
+#endif
 }
 
 void FlushFileLogs(Logger& logger)

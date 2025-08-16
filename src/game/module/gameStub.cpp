@@ -7,10 +7,10 @@ static bool showBlue = true;
 static GameInputState GameInputs = {new KeyInput[KEYBOARD_INPUTS],
                                     KEYBOARD_INPUTS};
 
-static SpriteBuffer Grass = {};
-static SpriteBuffer Plate = {};
-static SpriteBuffer Border = {};
-static SpriteBuffer TwoX = {};
+static PixelBuffer Grass = {};
+static PixelBuffer Plate = {};
+static PixelBuffer Border = {};
+static PixelBuffer TwoX = {};
 static v2 DrawPosition = {0, 0};
 
 // TODO: MOVETO parsing
@@ -68,15 +68,15 @@ void game_update()
         showBlue = !showBlue;
     }
 
-    if (GameInputs.Up.pressed) DrawPosition.y -= Grass.height;
-    if (GameInputs.Down.pressed) DrawPosition.y += Grass.height;
-    if (GameInputs.Left.pressed) DrawPosition.x -= Grass.width;
-    if (GameInputs.Right.pressed) DrawPosition.x += Grass.width;
+    if (GameInputs.Up.pressed) DrawPosition.y -= Grass.size.height;
+    if (GameInputs.Down.pressed) DrawPosition.y += Grass.size.height;
+    if (GameInputs.Left.pressed) DrawPosition.x -= Grass.size.width;
+    if (GameInputs.Right.pressed) DrawPosition.x += Grass.size.width;
 
     rendering_clear_screen(Buffer, BG_BLUE);
 
-    SpriteBuffer& bgSprite = showBlue ? Grass : Plate;
-    SpriteBuffer& playerSprite = showBlue ? Plate : Grass;
+    PixelBuffer& bgSprite = showBlue ? Grass : Plate;
+    PixelBuffer& playerSprite = showBlue ? Plate : Grass;
 
     rendering_fill_screen(Buffer, Border);
     rendering_draw_sprite(Buffer, playerSprite, DrawPosition);

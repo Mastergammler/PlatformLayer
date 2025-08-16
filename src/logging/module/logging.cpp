@@ -3,7 +3,7 @@
 #ifdef _WIN32
 const char* NL = "\r\n";
 #else
-const char NL = "\n";
+const char* NL = "\n";
 #endif
 
 void Debug(const string msg)
@@ -26,7 +26,8 @@ void logf(const string message, ...)
     char buffer[256];
     va_list args;
     va_start(args, message);
-    vsprintf_s(buffer, message.c_str(), args);
+    // vsprintf_s(buffer, message.c_str(), args);
+    vsprintf(buffer, message.c_str(), args);
     va_end(args);
 
     string formatted(buffer);
