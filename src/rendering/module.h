@@ -12,3 +12,12 @@ void rendering_fill_screen(DrawBuffer& buffer, PixelBuffer& sprite);
 void rendering_draw_sprite(DrawBuffer& buffer,
                            PixelBuffer& sprite,
                            v2 position);
+
+template <typename T> using SwapFunction = void (*)(T&, T&, int);
+template <typename T> void DefaultSwap(T& source, T& target, int length);
+
+// TODO: where should this live?
+template <typename T>
+void matrix_row_swap(Matrix<T> m,
+                     SwapFunction<T> SwapFunction = DefaultSwap,
+                     int length = 0);

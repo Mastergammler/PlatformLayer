@@ -3,6 +3,7 @@
 const int KEYBOARD_INPUTS = 9;
 
 static int helpcounter = 0;
+static int ImgIndx = 0;
 static bool showBlue = true;
 static GameInputState GameInputs = {new KeyInput[KEYBOARD_INPUTS],
                                     KEYBOARD_INPUTS};
@@ -10,7 +11,7 @@ static GameInputState GameInputs = {new KeyInput[KEYBOARD_INPUTS],
 static PixelBuffer Grass = {};
 static PixelBuffer Plate = {};
 static PixelBuffer Border = {};
-static PixelBuffer TwoX = {};
+static SpriteSheet SheetTest = {};
 static v2 DrawPosition = {0, 0};
 
 // TODO: MOVETO parsing
@@ -43,7 +44,7 @@ void game_init()
     load_sprite(Grass, "res/img/tile-grass.png");
     load_sprite(Plate, "res/img/tile-plate.bmp");
     load_sprite(Border, "res/img/tile-border.png");
-    load_sprite(TwoX, "res/img/s64x64-test.png");
+    load_sheet(SheetTest, "res/img/s64x64-test.png", v2{32, 64});
 
     float elapsed = time_since_start(timer);
     logf("Game initalized within %.1f ms", elapsed);
@@ -66,6 +67,7 @@ void game_update()
     else if (GameInputs.Jump.pressed)
     {
         showBlue = !showBlue;
+        ImgIndx = ++ImgIndx % SheetTest.tile_count;
     }
 
     if (GameInputs.Up.pressed) DrawPosition.y -= Grass.size.height;
@@ -79,7 +81,7 @@ void game_update()
     PixelBuffer& playerSprite = showBlue ? Plate : Grass;
 
     rendering_fill_screen(Buffer, Border);
-    rendering_draw_sprite(Buffer, playerSprite, DrawPosition);
+    rendering_draw_sprite(Buffer, SheetTest.tiles[ImgIndx], DrawPosition);
 
     // hot reload functionality
     if (GameInputs.ReloadConfig.released)

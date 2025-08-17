@@ -16,6 +16,29 @@ void rendering_fill_screen(DrawBuffer& buffer, PixelBuffer& sprite)
         }
     }
 }
+
+void debug_unsafe_draw(DrawBuffer buffer, PixelBuffer sprite, v2 pos)
+{
+    int startIdx = pos.x + pos.y * buffer.width;
+    u32* bufferStart = (u32*)buffer.memory + startIdx;
+    int spritePixelCount = sprite.size.x * sprite.size.y;
+
+    u32* bufferPixel = bufferStart;
+    u32* spritePixel = (u32*)sprite.pixels;
+    for (int i = 0; i < spritePixelCount; i++)
+    {
+        if (i % sprite.size.x == 0 && i > 0)
+        {
+            // goto next row
+            bufferPixel = bufferPixel + buffer.width - sprite.size.x;
+        }
+
+        *bufferPixel = *spritePixel;
+        bufferPixel++;
+        spritePixel++;
+    }
+}
+
 void rendering_draw_sprite(DrawBuffer& buffer, PixelBuffer& sprite, v2 pos)
 {
     if (pos.x >= buffer.width || pos.x < 0 - sprite.size.width ||

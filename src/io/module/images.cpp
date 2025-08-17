@@ -1,5 +1,7 @@
 #include "../internal.h"
 
+// TODO: the datastructure is still kind of messy, between where the info for
+//  channels / size / files etc should live
 void load_sheet(SpriteSheet& sheet, string imgPath, v2 tileSize, bool swapRB)
 {
     PixelBuffer sourceImage = {};
@@ -18,30 +20,56 @@ void load_sheet(SpriteSheet& sheet, string imgPath, v2 tileSize, bool swapRB)
         sheet.tile_count = sheet.grid_size.x * sheet.grid_size.y;
         sheet.tiles = new PixelBuffer[sheet.tile_count];
 
-        int tilePixelSize = tileSize.x * tileSize.y;
-
-        // pixel swap the positions so the images align in memory correctly
-        // and each image is continuous layed out
-        u32* imgStart = (u32*)sourceImage.pixels;
         for (int i = 0; i < sheet.tile_count; i++)
         {
-            int col = i / sheet.grid_size.x;
-            int row = i % sheet.grid_size.x;
+            PixelBuffer* cur = &sheet.tiles[i];
 
-            // skip first row, because first row shourld be correct always
-            u32* currentTilePixel = imgStart + (i * tilePixelSize) + tileSize.x;
-            for (int p = 0; p < tilePixelSize - tileSize.x; p++)
+            cur->channels = sourceImage.channels;
+            cur->size = tileSize;
+            cur->file = sourceImage.file;
+            cur->loaded = sourceImage.loaded;
+
+            int tilePixels = tileSize.x * tileSize.y;
+
+            // NOTE: We need to multiply by the channels since there is one byte
+            //  per channel for each pixel, and we want the pixel offset
+            cur->pixels = sourceImage.pixels +
+                          (i * tilePixels * sourceImage.channels);
+        }
+
+        for (int strip = 0; strip < sheet.grid_size.y; strip++)
+        {
+            PixelBuffer firstStripTile = sheet.tiles[strip * sheet.grid_size.x];
+            u32* stripStart = (u32*)firstStripTile.pixels;
+            int tileRowLength = firstStripTile.size.x;
+            int tileRowCount = firstStripTile.size.y;
+            int stripTiles = sheet.grid_size.x;
+
+            // 1 colum per tile, but 1 row per pixel
+            Matrix<u32*> matrix = {};
+            matrix.columns = stripTiles;
+            matrix.rows = tileRowCount;
+            matrix.cell_count = matrix.columns * matrix.rows;
+            matrix.data = new u32*[matrix.cell_count];
+
+            for (int cellIdx = 0; cellIdx < matrix.cell_count; cellIdx++)
             {
-                // first swap all rows for the first tile r1-m1 => rx mx
-                // then reverse for each one, but with one step less
-                // one of those steps will be the identity (x=y position
-                // unchanged)
-                // => I'm getting strong matrix vibes here! It's kind of like
-                // turning a matrix
-                // => But not quite, or maybe it just works because i'm turning
-                // an even matrix?
-                // => Also not quite sure
+                u32* cellStart = stripStart + (cellIdx * tileRowLength);
+                matrix.data[cellIdx] = cellStart;
             }
+
+            SwapFunction<u32*> swapRow = [](u32*& source,
+                                            u32*& target,
+                                            int length) {
+                for (int i = 0; i < length; i++)
+                {
+                    u32 swapStore = target[i];
+                    target[i] = source[i];
+                    source[i] = swapStore;
+                }
+            };
+
+            matrix_row_swap(matrix, swapRow, tileRowLength);
         }
     }
 

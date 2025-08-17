@@ -20,6 +20,7 @@ struct PixelBuffer
     string file;
     Dim size;
     int channels;
+
     // TODO: should store the data as array if possible
     //  that we can control allocation
     u8* pixels;
@@ -50,4 +51,18 @@ struct Sprite
     int sheet_start_index;
 
     SpriteSheet* sheet;
+};
+
+template <typename T> struct Matrix
+{
+    int rows;
+    int columns;
+    int cell_count;
+
+    T* data;
+
+    T& operator()(int row, int col)
+    {
+        return data[row * columns + col];
+    }
 };
