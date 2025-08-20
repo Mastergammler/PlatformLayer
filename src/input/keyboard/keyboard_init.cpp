@@ -1,6 +1,5 @@
 #include "../internal.h"
 
-
 KeyInput* FindInput(InputState* input, string name)
 {
     for (int i = 0; i < input->count; i++)

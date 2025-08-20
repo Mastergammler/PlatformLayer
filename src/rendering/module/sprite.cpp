@@ -1,6 +1,6 @@
 #include "../internal.h"
 
-void rendering_fill_screen(DrawBuffer& buffer, PixelBuffer& sprite)
+void rendering_fill_screen(DrawBuffer buffer, PixelBuffer sprite)
 {
     int columns = buffer.width / sprite.size.width;
     int rows = buffer.height / sprite.size.height;
@@ -39,7 +39,11 @@ void debug_unsafe_draw(DrawBuffer buffer, PixelBuffer sprite, v2 pos)
     }
 }
 
-void rendering_draw_sprite(DrawBuffer& buffer, PixelBuffer& sprite, v2 pos)
+// TODO: handle negative valuse for clipping correctly
+void rendering_draw_sprite(DrawBuffer buffer,
+                           PixelBuffer sprite,
+                           v2 pos,
+                           bool leftToRight)
 {
     if (pos.x >= buffer.width || pos.x < 0 - sprite.size.width ||
         pos.y >= buffer.height || pos.y < 0 - sprite.size.height)
@@ -71,6 +75,9 @@ void rendering_draw_sprite(DrawBuffer& buffer, PixelBuffer& sprite, v2 pos)
     {
         bufferPixel = bufferStart + y * buffer.width;
         bitmapPixel = bitmapStart + y * sprite.size.width;
+
+        if (!leftToRight) bitmapPixel = bitmapPixel + sprite.size.width - 1;
+
         for (int x = 0; x < xVisible; x++)
         {
             // NOTE: since Win GDI doesn't handle transparency
@@ -84,7 +91,10 @@ void rendering_draw_sprite(DrawBuffer& buffer, PixelBuffer& sprite, v2 pos)
             }
 
             bufferPixel++;
-            bitmapPixel++;
+            if (leftToRight)
+                bitmapPixel++;
+            else
+                bitmapPixel--;
         }
     }
 }

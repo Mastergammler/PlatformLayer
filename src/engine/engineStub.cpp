@@ -1,7 +1,7 @@
 #include "internal.h"
 
 static bool Running = true;
-static Clock MainClock = {};
+Clock GameClock = {};
 DrawBuffer Buffer = {};
 static v2 TileSize = {32, 32};
 static v2 ScreenTiles = {10, 6};
@@ -20,24 +20,24 @@ void init_win_size()
 
 void set_fps_text()
 {
-    if (time_to_update(MainClock, 0.25))
+    if (time_to_update(GameClock, 0.25))
     {
         string fpsTitle = format("%i FPS - %.1f ms/f",
-                                 MainClock.fps,
-                                 MainClock.frame_time);
+                                 GameClock.fps,
+                                 GameClock.frame_time);
         platform_window_title(fpsTitle);
     }
 }
 
 void engine_start()
 {
-    MainClock.target_fps = 144;
+    GameClock.target_fps = 144;
 
     logger_initialize({});
     init_win_size();
     platform_init();
     platform_open_window(WinIn);
-    timer_start(MainClock);
+    timer_start(GameClock);
     rendering_init_buffer(Buffer,
                           WinIn.draw_size.width,
                           WinIn.draw_size.height);
@@ -46,13 +46,13 @@ void engine_start()
 
     while (Running)
     {
-        timer_update(MainClock);
+        timer_update(GameClock);
         input_reset_all_keys();
         platform_handle_messages();
         game_update();
         platform_draw(Buffer, WinIn);
         set_fps_text();
-        timer_wait_till_next_frame(MainClock);
+        timer_wait_till_next_frame(GameClock);
     }
 
     game_dispose();

@@ -12,6 +12,7 @@
 #include "types.h"
 
 extern DrawBuffer Buffer;
+extern Clock GameClock;
 
 #define NAMEOF(x) #x
 

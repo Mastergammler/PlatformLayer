@@ -5,4 +5,4 @@
 #include "imports.h"
 #include "keyboard.h"
 
-static InputState* InputStates;
+static InputState* InputStates = {};

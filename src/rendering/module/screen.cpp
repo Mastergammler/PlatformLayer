@@ -17,7 +17,7 @@ void rendering_init_buffer(DrawBuffer& buffer, int width, int height)
     rendering_clear_screen(buffer, BG_BLUE);
 }
 
-void rendering_clear_screen(DrawBuffer& buffer, u32 bgColor)
+void rendering_clear_screen(DrawBuffer buffer, u32 bgColor)
 {
     u32* pixel = (u32*)buffer.memory;
     for (int i = 0; i < buffer.pixel_count; i++)

@@ -2,10 +2,32 @@
 
 #include <sstream>
 
+struct f2
+{
+    float x;
+    float y;
+};
+
 struct v2
 {
     int x;
     int y;
+
+    v2()
+    {
+    }
+
+    v2(int x, int y)
+    {
+        this->x = x;
+        this->y = y;
+    }
+
+    v2(const f2 f2)
+    {
+        x = f2.x;
+        y = f2.y;
+    };
 };
 
 struct Dim : v2
