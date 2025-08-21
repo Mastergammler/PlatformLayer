@@ -74,14 +74,14 @@ void load_sheet(SpriteSheet& sheet, string imgPath, v2 tileSize, bool swapRB)
     }
 
     float elapsed = time_since_start(timer);
-    logf("Creating sprite sheet for file '%s' (%ix%i tiles a %ix%i) took %.3f "
-         "ms",
+    logf("| %.3f ms | Creating sprite sheet for file '%s' (%ix%i tiles a "
+         "%ix%i)",
+         elapsed,
          imgPath.c_str(),
          sheet.grid_size.x,
          sheet.grid_size.y,
          sheet.tile_size.x,
-         sheet.tile_size.y,
-         elapsed);
+         sheet.tile_size.y);
 }
 
 void load_sprite(PixelBuffer& buffer, string path, bool swapRB)
@@ -119,11 +119,11 @@ void load_sprite(PixelBuffer& buffer, string path, bool swapRB)
     {
         buffer.loaded = true;
         float elapsed = time_since_start(timer);
-        logf("Loading file '%s' (%ix%i) within %.3f ms",
+        logf("| %.3f ms | Loading file '%s' (%ix%i)",
+             elapsed,
              path.c_str(),
              buffer.size.width,
-             buffer.size.height,
-             elapsed);
+             buffer.size.height);
     }
     else
     {

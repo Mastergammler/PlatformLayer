@@ -14,6 +14,12 @@ void rendering_draw_sprite(DrawBuffer buffer,
                            v2 position,
                            bool leftToRight = true);
 
+void rendering_draw_text(DrawBuffer buffer,
+                         BitmapFont font,
+                         string text,
+                         v2 position,
+                         bool anchorLeft = true);
+
 template <typename T> using SwapFunction = void (*)(T&, T&, int);
 template <typename T> void DefaultSwap(T& source, T& target, int length);
 

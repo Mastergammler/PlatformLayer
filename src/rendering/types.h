@@ -66,3 +66,29 @@ template <typename T> struct Matrix
         return data[row * columns + col];
     }
 };
+
+/**
+ * Bitmap font refers to a font that is loaded based on a sprite sheet
+ * So bascially a pre-rasterised font that is just displayed like any
+ * other image
+ */
+struct BitmapFont
+{
+    /**
+     * ASCII offset for the number indices of the sprite
+     * E.g.: 0 = ASCII 48  SpriteIdx = 26
+     *       Offset = -22 => ASCII - 22 = 26
+     */
+    int digit_offset;
+
+    /**
+     *  Upper letter ASCII offset of the sprite indices
+     */
+    int upper_offset;
+
+    /**
+     * Lower letter ASCII offset for the sprite indices
+     */
+    int lower_offset;
+    SpriteSheet* sprites;
+};

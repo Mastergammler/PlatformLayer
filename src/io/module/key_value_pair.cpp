@@ -106,10 +106,10 @@ void parse_file(const string filePath, function<void(string, string)> insert)
     file.close();
 
     float parsingTime = time_since_start(timer);
-    logf("Parsed file: '%s' (%i bytes) within %.3f ms",
+    logf("| %.3f ms | Parsed file: '%s' (%i bytes)",
+         parsingTime,
          filePath.c_str(),
-         totalBytesRead,
-         parsingTime);
+         totalBytesRead);
 }
 
 void parse_kvp_file(unordered_map<string, string>* map, const string filePath)

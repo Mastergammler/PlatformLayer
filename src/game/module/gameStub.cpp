@@ -14,6 +14,8 @@ static PixelBuffer Plate = {};
 static PixelBuffer Border = {};
 static SpriteSheet SheetTest = {};
 static SpriteSheet AnimTest = {};
+static SpriteSheet FontSprites = {};
+static BitmapFont Font = {};
 
 // anim
 static float Elapsed = 0;
@@ -67,11 +69,13 @@ void game_init()
     SheetTest.tiles[3] = swap;
 
     load_sheet(AnimTest, "res/img/Anim.png", v2{32, 32});
+    load_sheet(FontSprites, "res/img/Medodica_7x10.png", v2{7, 10});
+    Font = BitmapFont{-48, -55, -61, &FontSprites};
 
     PlayerCenter = AnimTest.tile_size / 2;
 
     float elapsed = time_since_start(timer);
-    logf("Game initalized within %.1f ms", elapsed);
+    logf("| %.1f ms | Game initialization", elapsed);
 }
 
 void game_update()
@@ -79,9 +83,7 @@ void game_update()
     if (GameInputs.Exit.released) engine_stop();
     if (GameInputs.Help.pressed)
     {
-        string msg = format("I have helped %i times already", ++helpcounter);
-        log(msg);
-        platform_window_title(msg);
+        helpcounter++;
     }
     else if (GameInputs.Action.pressed)
     {
@@ -161,6 +163,12 @@ void game_update()
                           AnimTest.tiles[PlayerAnimIdx],
                           PlayerPosition,
                           FacingForward);
+
+    rendering_draw_text(Buffer,
+                        Font,
+                        format("Player has HELPED: %i", helpcounter),
+                        v2{Buffer.width, 10},
+                        false);
 
     // hot reload functionality
     if (GameInputs.ReloadConfig.released)
