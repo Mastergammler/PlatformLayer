@@ -38,6 +38,7 @@ void engine_start()
     platform_init();
     platform_open_window(WinIn);
     timer_start(GameClock);
+    audio_init();
     rendering_init_buffer(Buffer,
                           WinIn.draw_size.width,
                           WinIn.draw_size.height);
@@ -56,6 +57,7 @@ void engine_start()
     }
 
     game_dispose();
+    audio_dispose();
     platform_dispose();
 
     log("Engine shutdown");

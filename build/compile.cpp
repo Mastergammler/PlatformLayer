@@ -1,4 +1,5 @@
 #include "../src/logging/compile.cpp"
+#include "../src/audio/compile.cpp"
 #include "../src/engine/compile.cpp"
 #include "../src/game/compile.cpp"
 #include "../src/input/compile.cpp"

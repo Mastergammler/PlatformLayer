@@ -20,6 +20,7 @@ static BitmapFont Font = {};
 // anim
 static float Elapsed = 0;
 static int ImgIndx = 0;
+static float GroundFrameTime = 1;
 
 // player movement
 static f2 PlayerPosition = {0, 0};
@@ -36,6 +37,12 @@ string TrimToVariableName(string s)
 {
     size_t pos = s.find_last_of('.');
     return pos == string::npos ? s : s.substr(pos + 1);
+}
+
+float bpm_to_beat_duration(float bpm)
+{
+    float minute_to_ms = 60;
+    return minute_to_ms / bpm;
 }
 
 void game_init()
@@ -74,6 +81,10 @@ void game_init()
 
     PlayerCenter = AnimTest.tile_size / 2;
 
+    Audio audio;
+    audio_load_sound(audio, "res/audio/TestBeat_100Bpm_16M.wav");
+    GroundFrameTime = bpm_to_beat_duration(100.);
+
     float elapsed = time_since_start(timer);
     logf("| %.1f ms | Game initialization", elapsed);
 }
@@ -96,9 +107,9 @@ void game_update()
     }
 
     Elapsed += GameClock.sim_time;
-    if (Elapsed > 1)
+    if (Elapsed > GroundFrameTime)
     {
-        Elapsed -= 1;
+        Elapsed -= GroundFrameTime;
         ImgIndx = ++ImgIndx % SheetTest.tile_count;
     }
 
@@ -154,10 +165,6 @@ void game_update()
         PlayerPosition.y = Buffer.height - 1 - PlayerCenter.y;
 
     rendering_clear_screen(Buffer, BG_BLUE);
-
-    PixelBuffer& bgSprite = showBlue ? Grass : Plate;
-    PixelBuffer& playerSprite = showBlue ? Plate : Grass;
-
     rendering_fill_screen(Buffer, SheetTest.tiles[ImgIndx]);
     rendering_draw_sprite(Buffer,
                           AnimTest.tiles[PlayerAnimIdx],

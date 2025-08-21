@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../audio/module.h"
 #include "../engine.h"
 #include "../game/module.h"
 #include "../input/keyboard.h"
