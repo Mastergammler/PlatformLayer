@@ -16,6 +16,7 @@ static SpriteSheet SheetTest = {};
 static SpriteSheet AnimTest = {};
 static SpriteSheet FontSprites = {};
 static BitmapFont Font = {};
+static Playback pb;
 
 // anim
 static float Elapsed = 0;
@@ -31,6 +32,8 @@ static float PlayerAnimElapsed = 0;
 static float PlayerSpeed = 0.4;
 static float FrameTime = 0.05f;
 static bool FacingForward = true;
+
+static bool Started = false;
 
 // TODO: MOVETO parsing
 string TrimToVariableName(string s)
@@ -83,7 +86,7 @@ void game_init()
 
     Audio audio;
     audio_load_sound(audio, "res/audio/TestBeat_100Bpm_16M.wav");
-    GroundFrameTime = bpm_to_beat_duration(100.);
+    GroundFrameTime = bpm_to_beat_duration(100.) * 2;
 
     float elapsed = time_since_start(timer);
     logf("| %.1f ms | Game initialization", elapsed);
@@ -109,6 +112,13 @@ void game_update()
     Elapsed += GameClock.sim_time;
     if (Elapsed > GroundFrameTime)
     {
+
+        if (!Started)
+        {
+            audio_start_playback(pb);
+            Started = true;
+        }
+
         Elapsed -= GroundFrameTime;
         ImgIndx = ++ImgIndx % SheetTest.tile_count;
     }
