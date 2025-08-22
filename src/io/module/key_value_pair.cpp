@@ -38,7 +38,7 @@ void parse_file(const string filePath, function<void(string, string)> insert)
     bool foundKey = false;
     bool foundValue = false;
     bool ignoreRest = false;
-    bool eoVal = false;
+    // bool eoVal = false;
 
     int totalBytesRead = 0;
 
@@ -69,7 +69,7 @@ void parse_file(const string filePath, function<void(string, string)> insert)
                 foundKey = false;
                 foundValue = false;
                 ignoreRest = false;
-                eoVal = false;
+                // eoVal = false;
                 nextKeyIdx = 0;
                 nextValueIdx = 0;
             }
@@ -77,13 +77,13 @@ void parse_file(const string filePath, function<void(string, string)> insert)
             else if (ignoreRest || ch == ' ' || ch == '\r')
             {
                 // TODO: hanlde eoval - early "abort"
-                eoVal = true;
+                // eoVal = true;
                 continue;
             }
             else if (ch == ':')
             {
                 foundKey = true;
-                eoVal = false;
+                // eoVal = false;
             }
             else if (ch == '#')
             {

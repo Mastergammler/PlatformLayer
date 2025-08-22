@@ -114,7 +114,6 @@ void game_update()
     }
 
     bool playAnim = false;
-    bool leftToRight = true;
 
     // TODO: diagonal speed not normalized
     if (GameInputs.Up.is_down)

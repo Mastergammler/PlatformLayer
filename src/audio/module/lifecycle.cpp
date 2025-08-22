@@ -13,7 +13,7 @@ void audio_init()
     result = ma_context_init(NULL, 0, NULL, &Context);
     if (result != MA_SUCCESS)
     {
-        logf("Unable to retrieve audio context %i", result);
+        logf("[Audio] Unable to retrieve audio context %i", result);
         return;
     }
 
@@ -26,14 +26,14 @@ void audio_init()
                                     NULL);
     if (result != MA_SUCCESS)
     {
-        logf("Unable to read hardware devices: %i", result);
+        logf("[Audio] Unable to read hardware devices: %i", result);
         audio_dispose();
         return;
     }
 
     if (deviceCount == 0)
     {
-        logf("No output devices found.");
+        logf("[Audio] No output devices found.");
         audio_dispose();
         return;
     }
@@ -41,7 +41,7 @@ void audio_init()
     int defaultDevice = 0;
     for (ma_uint32 i = 0; i < deviceCount; i++)
     {
-        logf("Device %u: %s", i, deviceInfos[i].name);
+        logf("[Audio] Device %u: %s", i, deviceInfos[i].name);
         if (deviceInfos[i].isDefault) defaultDevice = i;
     }
 
@@ -55,7 +55,7 @@ void audio_init()
     result = ma_device_init(&Context, &DeviceConfig, &Device);
     if (result != MA_SUCCESS)
     {
-        logf("Device '%s' could not be initalized: %i",
+        logf("[Audio] Device '%s' could not be initalized: %i",
              deviceInfos[defaultDevice].name,
              result);
         audio_dispose();
@@ -65,14 +65,14 @@ void audio_init()
     result = ma_device_start(&Device);
     if (result != MA_SUCCESS)
     {
-        logf("Device '%s' could not be started for playback: %i",
+        logf("[Audio] Device '%s' could not be started for playback: %i",
              deviceInfos[defaultDevice].name,
              result);
         audio_dispose();
         return;
     }
 
-    logf("DefaultDevice '%s' with %u channels at %u hz was initalized",
+    logf("[Audio] DefaultDevice '%s' with %u channels at %u hz was initalized",
          deviceInfos[defaultDevice].name,
          Device.playback.channels,
          Device.sampleRate);
@@ -90,5 +90,5 @@ void audio_dispose()
     ma_device_uninit(&Device);
     ma_context_uninit(&Context);
     AudioDisposed = true;
-    log("Audio disposed");
+    log("[Audio] Disposed");
 }

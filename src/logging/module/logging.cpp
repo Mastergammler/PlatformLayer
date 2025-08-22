@@ -26,8 +26,13 @@ void logf(const string message, ...)
     char buffer[256];
     va_list args;
     va_start(args, message);
-    // vsprintf_s(buffer, message.c_str(), args);
+
+// TODO: PLATFORM - proper separation
+#ifdef _WIN32
+    vsprintf_s(buffer, message.c_str(), args);
+#else
     vsprintf(buffer, message.c_str(), args);
+#endif
     va_end(args);
 
     string formatted(buffer);
