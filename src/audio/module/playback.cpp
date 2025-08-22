@@ -3,6 +3,7 @@
 void audio_start_playback(Playback pb)
 {
     ma_result result;
+    Device.pUserData = &Buffers[pb.data->buffer_index];
     result = ma_device_start(&Device);
     if (result != MA_SUCCESS)
     {

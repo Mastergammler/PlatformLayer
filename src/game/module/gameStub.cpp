@@ -16,7 +16,8 @@ static SpriteSheet SheetTest = {};
 static SpriteSheet AnimTest = {};
 static SpriteSheet FontSprites = {};
 static BitmapFont Font = {};
-static Playback pb;
+static Audio audio;
+static Playback pb = {&audio};
 
 // anim
 static float Elapsed = 0;
@@ -30,10 +31,11 @@ static int PlayerAnimIdx = 0;
 static float PlayerAnimElapsed = 0;
 // frame time should be in relation to player speed
 static float PlayerSpeed = 0.4;
-static float FrameTime = 0.05f;
+static float PlayerAnimFrameTime = 0.05f;
 static bool FacingForward = true;
 
 static bool Started = false;
+static bool MusicStarted = false;
 
 // TODO: MOVETO parsing
 string TrimToVariableName(string s)
@@ -85,8 +87,9 @@ void game_init()
     PlayerCenter = AnimTest.tile_size / 2;
 
     Audio audio;
-    audio_load_sound(audio, "res/audio/TestBeat_100Bpm_16M.wav");
+    audio_load_sound(audio, "res/audio/TestBeat_100Bpm_16M_16bit.wav");
     GroundFrameTime = bpm_to_beat_duration(100.) * 2;
+    PlayerAnimFrameTime = bpm_to_beat_duration(100.) / 8;
 
     float elapsed = time_since_start(timer);
     logf("| %.1f ms | Game initialization", elapsed);
@@ -109,18 +112,26 @@ void game_update()
         showBlue = !showBlue;
     }
 
-    Elapsed += GameClock.sim_time;
-    if (Elapsed > GroundFrameTime)
+    if (!Started)
     {
+        audio_start_playback(pb);
+        Started = true;
+    }
 
-        if (!Started)
-        {
-            audio_start_playback(pb);
-            Started = true;
-        }
-
-        Elapsed -= GroundFrameTime;
+    if (!MusicStarted && AudioEvent.load() == AUDIO_START)
+    {
         ImgIndx = ++ImgIndx % SheetTest.tile_count;
+        MusicStarted = true;
+    }
+
+    if (MusicStarted)
+    {
+        Elapsed += GameClock.sim_time;
+        if (Elapsed > GroundFrameTime)
+        {
+            Elapsed -= GroundFrameTime;
+            ImgIndx = ++ImgIndx % SheetTest.tile_count;
+        }
     }
 
     bool playAnim = false;
@@ -153,10 +164,10 @@ void game_update()
     if (playAnim)
     {
         PlayerAnimElapsed += GameClock.sim_time;
-        if (PlayerAnimElapsed > FrameTime)
+        if (PlayerAnimElapsed > PlayerAnimFrameTime)
         {
             PlayerAnimIdx = ++PlayerAnimIdx % AnimTest.tile_count;
-            PlayerAnimElapsed -= FrameTime;
+            PlayerAnimElapsed -= PlayerAnimFrameTime;
         }
     }
     else if (PlayerAnimIdx > 0)
