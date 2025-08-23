@@ -1,4 +1,5 @@
 #include "../internal.h"
+#include <atomic>
 
 ma_context Context;
 ma_device_config DeviceConfig;
@@ -11,10 +12,15 @@ ma_audio_buffer* Buffers;
 
 static bool AudioDisposed = false;
 atomic<int> AudioEvent(0);
+atomic<int> FramesPassed(0);
 
 // 0 = choose default
 #define SAMPLE_RATE 44100;
 
+// FIXME: there seems to be a lag on the second run if looping is enabled
+//  -> it seems like on buffer switch there are some samples dropped or
+//  something
+//  => Some drum beats are just a little bit late, but it's noticable!
 void data_callback(ma_device* device,
                    void* output,
                    const void* input,
@@ -31,6 +37,7 @@ void data_callback(ma_device* device,
         firstcall = 0;
     }
 
+    FramesPassed.fetch_add(frameCount, std::memory_order_release);
     if (AudioEvent.load() == 0)
     {
         AudioEvent.fetch_or(AUDIO_START, memory_order_acq_rel);

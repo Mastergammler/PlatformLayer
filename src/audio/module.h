@@ -40,5 +40,6 @@ void audio_start_playback(Playback pb);
 void audio_stop_playback(Playback pb);
 
 extern std::atomic<int> AudioEvent;
+extern std::atomic<int> FramesPassed;
 
 // TODO: loudness etc info

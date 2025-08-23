@@ -1,4 +1,5 @@
 #include "../internal.h"
+#include <atomic>
 
 const int KEYBOARD_INPUTS = 9;
 
@@ -13,29 +14,55 @@ static PixelBuffer Grass = {};
 static PixelBuffer Plate = {};
 static PixelBuffer Border = {};
 static SpriteSheet SheetTest = {};
-static SpriteSheet AnimTest = {};
+static SpriteSheet PlayerWalking = {};
+static SpriteSheet PlayerIdle = {};
 static SpriteSheet FontSprites = {};
 static BitmapFont Font = {};
 static Audio audio;
 static Playback pb = {&audio};
+static Clock SongClock = {};
+
+// TODO: this way of syncing using a clock doesn't seem to be working
+//  I probably need to send the frame position (cursor position) from
+//  the audio directly and calculate the beat based on that
+//  else i'll never have a proper sync
+//  This would also compensate for sound glitches (lags) as i encountered
+// TEST: input lag from keyboard with just then logging out the BEAT on which it
+// was pressed & how close it was to the beat (ms diff etc) to see how bad it
+// is, if it's playable etc -> because that's the other issue
+// - Syncing player input & syncing to audio in general
 
 // anim
 static float Elapsed = 0;
-static int ImgIndx = 0;
+static int GroundIdx = 0;
 static float GroundFrameTime = 1;
 
 // player movement
 static f2 PlayerPosition = {0, 0};
 static v2 PlayerCenter = {};
-static int PlayerAnimIdx = 0;
-static float PlayerAnimElapsed = 0;
+static int PlayerWalkAnimIdx = 0;
+// Offbeat seems just strange
+static int PlayerIdleAnimIdx = 1;
+static float PlayerIdleElapsed = 0;
 // frame time should be in relation to player speed
 static float PlayerSpeed = 0.4;
-static float PlayerAnimFrameTime = 0.05f;
+static float PlayerWalkingBeatTime = 1;
+static float PlayerIdleBeatTime = 1;
 static bool FacingForward = true;
 
 static bool Started = false;
 static bool MusicStarted = false;
+
+// ms in which the flip for the previous frame is accepted
+// -> should be roughly synchronized with fps
+static float PreBeatThreshold = 0.005;
+// if the animation flip happend already
+static bool PreBeatChange = false;
+static bool IdlePreBeatChange = false;
+static int BeatCounter = 0;
+static float WalkingElapsed = 0;
+
+static int FrameCounter = 0;
 
 // TODO: MOVETO parsing
 string TrimToVariableName(string s)
@@ -44,10 +71,10 @@ string TrimToVariableName(string s)
     return pos == string::npos ? s : s.substr(pos + 1);
 }
 
-float bpm_to_beat_duration(float bpm)
+float bpm_to_beat_duration_s(float bpm)
 {
-    float minute_to_ms = 60;
-    return minute_to_ms / bpm;
+    float minute_to_s = 60;
+    return minute_to_s / bpm;
 }
 
 void game_init()
@@ -80,102 +107,200 @@ void game_init()
     SheetTest.tiles[2] = SheetTest.tiles[3];
     SheetTest.tiles[3] = swap;
 
-    load_sheet(AnimTest, "res/img/Anim.png", v2{32, 32});
+    load_sheet(PlayerWalking, "res/img/Anim.png", v2{32, 32});
+    load_sheet(PlayerIdle, "res/img/Idle.png", v2{32, 32});
     load_sheet(FontSprites, "res/img/Medodica_7x10.png", v2{7, 10});
     Font = BitmapFont{-48, -55, -61, &FontSprites};
 
-    PlayerCenter = AnimTest.tile_size / 2;
+    PlayerCenter = PlayerWalking.tile_size / 2;
 
     Audio audio;
-    audio_load_sound(audio, "res/audio/TestBeat_100Bpm_16M_16bit.wav");
-    GroundFrameTime = bpm_to_beat_duration(100.) * 2;
-    PlayerAnimFrameTime = bpm_to_beat_duration(100.) / 8;
+    audio_load_sound(audio, "res/audio/Test2_112BPM_16B.wav");
+    float bpm = 112;
+    GroundFrameTime = bpm_to_beat_duration_s(bpm) * 2;
+    PlayerWalkingBeatTime = bpm_to_beat_duration_s(bpm) / 8;
+    PlayerIdleBeatTime = bpm_to_beat_duration_s(bpm) / 2;
 
     float elapsed = time_since_start(timer);
     logf("| %.1f ms | Game initialization", elapsed);
 }
 
+static int IdleBeatsPlayed = 0;
+
 void game_update()
 {
     if (GameInputs.Exit.released) engine_stop();
+
+    bool walkingBeatChangeThisFrame = false;
+    bool nextIdleFrame = false;
+    int framesRead = FramesPassed.load(std::memory_order_acquire);
+    FramesPassed.fetch_sub(framesRead, std::memory_order_acquire);
+    FrameCounter += framesRead;
+    float playbackDuration = (float)44100 / FrameCounter;
+    int beatsPlayed = playbackDuration / PlayerIdleBeatTime;
+    if (beatsPlayed > IdleBeatsPlayed)
+    {
+        IdleBeatsPlayed = beatsPlayed;
+        nextIdleFrame = true;
+    }
+
     if (GameInputs.Help.pressed)
     {
         helpcounter++;
     }
-    else if (GameInputs.Action.pressed)
+    else if (GameInputs.Action.is_down)
     {
-        log("Player triggered action");
-        platform_window_title("STUFF IS HAPPENING");
+        logf("Audio did play %i frames this frame", framesRead);
     }
     else if (GameInputs.Jump.pressed)
     {
         showBlue = !showBlue;
     }
 
+    // start audio
     if (!Started)
     {
         audio_start_playback(pb);
         Started = true;
     }
 
+    // sync audio
     if (!MusicStarted && AudioEvent.load() == AUDIO_START)
     {
-        ImgIndx = ++ImgIndx % SheetTest.tile_count;
+        GroundIdx = ++GroundIdx % SheetTest.tile_count;
         MusicStarted = true;
+        timer_start(SongClock);
     }
 
-    if (MusicStarted)
-    {
-        Elapsed += GameClock.sim_time;
-        if (Elapsed > GroundFrameTime)
-        {
-            Elapsed -= GroundFrameTime;
-            ImgIndx = ++ImgIndx % SheetTest.tile_count;
-        }
-    }
-
-    bool playAnim = false;
+    bool walkingAnim = false;
 
     // TODO: diagonal speed not normalized
     if (GameInputs.Up.is_down)
     {
         PlayerPosition.y -= PlayerSpeed;
-        playAnim = true;
+        walkingAnim = true;
     }
     else if (GameInputs.Down.is_down)
     {
         PlayerPosition.y += PlayerSpeed;
-        playAnim = true;
+        walkingAnim = true;
     }
     if (GameInputs.Left.is_down)
     {
         PlayerPosition.x -= PlayerSpeed;
-        playAnim = true;
+        walkingAnim = true;
         FacingForward = false;
     }
     else if (GameInputs.Right.is_down)
     {
         PlayerPosition.x += PlayerSpeed;
-        playAnim = true;
+        walkingAnim = true;
         FacingForward = true;
     }
 
-    // playing exit frame until player start
-    if (playAnim)
+    if (MusicStarted)
     {
-        PlayerAnimElapsed += GameClock.sim_time;
-        if (PlayerAnimElapsed > PlayerAnimFrameTime)
+        timer_update(SongClock);
+        Elapsed += SongClock.sim_time;
+        if (Elapsed > GroundFrameTime)
         {
-            PlayerAnimIdx = ++PlayerAnimIdx % AnimTest.tile_count;
-            PlayerAnimElapsed -= PlayerAnimFrameTime;
+            Elapsed -= GroundFrameTime;
+            GroundIdx = ++GroundIdx % SheetTest.tile_count;
         }
     }
-    else if (PlayerAnimIdx > 0)
+
+    if (MusicStarted)
     {
-        // reset to start frame
-        // no exit animation time, becaues it looks akward
-        PlayerAnimIdx = 0;
+        WalkingElapsed += SongClock.sim_time;
+        if (WalkingElapsed >= PlayerWalkingBeatTime)
+        {
+            WalkingElapsed -= PlayerWalkingBeatTime;
+            BeatCounter++;
+            walkingBeatChangeThisFrame = true;
+        }
+
+        PlayerIdleElapsed += SongClock.sim_time;
+        if (PlayerIdleElapsed >= PlayerIdleBeatTime)
+        {
+            PlayerIdleElapsed -= PlayerIdleBeatTime;
+            nextIdleFrame = true;
+        }
     }
+
+    if (!walkingAnim && nextIdleFrame)
+    {
+        PlayerIdleAnimIdx = ++PlayerIdleAnimIdx % PlayerIdle.tile_count;
+    }
+
+    // playing exit frame until player start
+    if (walkingAnim)
+    {
+        // this beat vs last beat calculation etc
+        float beatsPartial = time_since_start(SongClock) * 1000 /
+                             PlayerWalkingBeatTime;
+
+        float fullBeatsTime = (int)beatsPartial * PlayerWalkingBeatTime;
+        float timeInCurBeat = beatsPartial - fullBeatsTime;
+        // Pre beat condition
+        if (timeInCurBeat > (PlayerWalkingBeatTime - PreBeatThreshold) &&
+            !PreBeatChange)
+        {
+            PreBeatChange = true;
+            PlayerWalkAnimIdx = ++PlayerWalkAnimIdx % PlayerWalking.tile_count;
+        }
+        else if (walkingBeatChangeThisFrame)
+        {
+            if (!PreBeatChange)
+            {
+                PlayerWalkAnimIdx = ++PlayerWalkAnimIdx %
+                                    PlayerWalking.tile_count;
+            }
+            PreBeatChange = false;
+        }
+    }
+    else
+    {
+        // TODO: this isn't really synced, this doesn't work yet
+        //->  i guess it's too much of a mess anyway to do this properly
+        // currently
+        //=> I need to clean this up accordingly
+        //  this beat vs last beat calculation etc
+        /*float beatsPartial = time_since_start(SongClock) / 1000 /
+                             PlayerIdleBeatTime;
+
+        float fullBeatsTime = (int)beatsPartial * PlayerIdleBeatTime;
+        float timeInCurBeat = beatsPartial - fullBeatsTime;
+        // Pre beat condition
+        if (timeInCurBeat > (PlayerIdleBeatTime - PreBeatThreshold) &&
+            !IdlePreBeatChange)
+        {
+            IdlePreBeatChange = true;
+            PlayerIdleAnimIdx = ++PlayerIdleAnimIdx % PlayerIdle.tile_count;
+            logf("Anim for Beat %i animIdx %i groundIdx %i",
+                 (int)beatsPartial + 1,
+                 PlayerIdleAnimIdx,
+                 GroundIdx);
+    }
+    else if (idleBeatChangeThisFrame)
+    {
+        if (!IdlePreBeatChange)
+        {
+            PlayerIdleAnimIdx = ++PlayerIdleAnimIdx % PlayerIdle.tile_count;
+            logf("Beat %i animIdx %i groundIdx %i",
+                 (int)beatsPartial,
+                 PlayerIdleAnimIdx,
+                 GroundIdx);
+        }
+        IdlePreBeatChange = false;
+    }
+    */
+    }
+
+    PixelBuffer playerTile;
+    if (walkingAnim)
+        playerTile = PlayerWalking.tiles[PlayerWalkAnimIdx];
+    else
+        playerTile = PlayerIdle.tiles[PlayerIdleAnimIdx];
 
     if (PlayerPosition.x < -PlayerCenter.x) PlayerPosition.x = -PlayerCenter.x;
     if (PlayerPosition.y < -PlayerCenter.y) PlayerPosition.y = -PlayerCenter.y;
@@ -185,11 +310,8 @@ void game_update()
         PlayerPosition.y = Buffer.height - 1 - PlayerCenter.y;
 
     rendering_clear_screen(Buffer, BG_BLUE);
-    rendering_fill_screen(Buffer, SheetTest.tiles[ImgIndx]);
-    rendering_draw_sprite(Buffer,
-                          AnimTest.tiles[PlayerAnimIdx],
-                          PlayerPosition,
-                          FacingForward);
+    rendering_fill_screen(Buffer, SheetTest.tiles[GroundIdx]);
+    rendering_draw_sprite(Buffer, playerTile, PlayerPosition, FacingForward);
 
     rendering_draw_text(Buffer,
                         Font,

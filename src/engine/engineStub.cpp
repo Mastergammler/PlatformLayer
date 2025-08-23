@@ -31,7 +31,7 @@ void set_fps_text()
 
 void engine_start()
 {
-    GameClock.target_fps = 144;
+    GameClock.target_fps = 250;
 
     logger_initialize({});
     init_win_size();
