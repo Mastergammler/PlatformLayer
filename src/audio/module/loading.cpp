@@ -68,10 +68,12 @@ void audio_load_sound(Audio& sound, std::string file)
     ma_decoder_uninit(&decoder);
     sound.loaded = true;
 
-    logf("| %.1f ms | Loading audio '%s' %i channels at %i Hz (%.2fs)",
+    logf("| %.1f ms | Loading audio '%s' %i channels at %i Hz (%i frames - "
+         "%.2fs)",
          time_since_start(timer),
          file.c_str(),
          sound.channels,
          sound.sample_rate,
+         sound.samples_per_channel,
          sound.length_s);
 }

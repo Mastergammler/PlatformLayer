@@ -1,55 +1,14 @@
 #include "../internal.h"
-#include <atomic>
 
 ma_context Context;
 ma_device_config DeviceConfig;
 ma_device Device;
 
-// 16 loaded audio clips
-int BufferCount = 16;
-int BufferIndex = 0;
-ma_audio_buffer* Buffers;
-
-static bool AudioDisposed = false;
-atomic<int> AudioEvent(0);
-atomic<int> FramesPassed(0);
-
 // 0 = choose default
 #define SAMPLE_RATE 44100;
+#define BUFFER_SIZE 0 // 128;
 
-// FIXME: there seems to be a lag on the second run if looping is enabled
-//  -> it seems like on buffer switch there are some samples dropped or
-//  something
-//  => Some drum beats are just a little bit late, but it's noticable!
-void data_callback(ma_device* device,
-                   void* output,
-                   const void* input,
-                   ma_uint32 frameCount)
-{
-    // TODO: remove this in audio thread
-    // -> Play a FAKE audio (everything 0 or something) for the first time just
-    // to query this
-    // => Then ignore it for subsequent calls
-    static int firstcall = 1;
-    if (firstcall)
-    {
-        logf("Buffer size in frames (%i)", frameCount);
-        firstcall = 0;
-    }
-
-    FramesPassed.fetch_add(frameCount, std::memory_order_release);
-    if (AudioEvent.load() == 0)
-    {
-        AudioEvent.fetch_or(AUDIO_START, memory_order_acq_rel);
-        AudioEvent.fetch_or(AUDIO_START);
-    }
-
-    ma_audio_buffer* buffer = (ma_audio_buffer*)device->pUserData;
-    if (buffer)
-    {
-        ma_audio_buffer_read_pcm_frames(buffer, output, frameCount, true);
-    }
-}
+static bool AudioDisposed = false;
 
 void audio_init()
 {
@@ -97,7 +56,8 @@ void audio_init()
 
     DeviceConfig = ma_device_config_init(ma_device_type_playback);
     DeviceConfig.playback.pDeviceID = &deviceInfos[defaultDevice].id;
-    // use default values
+    // DeviceConfig.playback.pDeviceID = &deviceInfos[2].id;
+    //  use default values
     DeviceConfig.playback.format = ma_format_unknown;
 
     // TODO: needs to be set before the device is initialized
@@ -109,6 +69,7 @@ void audio_init()
     // For simple tasks even 32 is feasable
     // default seems to be 480 = 10ms for 48000 Hz
     // DeviceConfig.periodSizeInFrames = 32;
+    DeviceConfig.periodSizeInFrames = BUFFER_SIZE;
 
     result = ma_device_init(&Context, &DeviceConfig, &Device);
     if (result != MA_SUCCESS)
@@ -116,6 +77,15 @@ void audio_init()
         logf("[Audio] Device '%s' could not be initalized: %i",
              deviceInfos[defaultDevice].name,
              result);
+        audio_dispose();
+        return;
+    }
+
+    Device.pUserData = &Playbacks;
+    result = ma_device_start(&Device);
+    if (result != MA_SUCCESS)
+    {
+        logf("[Audio] Device could not be started for playback: %i", result);
         audio_dispose();
         return;
     }
@@ -133,6 +103,7 @@ void audio_init()
 
 void audio_update()
 {
+    // for each channel -> call channel.update()
 }
 
 void audio_dispose()

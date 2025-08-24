@@ -1,14 +1,13 @@
 #include "../internal.h"
 #include <atomic>
 
-const int KEYBOARD_INPUTS = 9;
+const int KEYBOARD_INPUTS = 11;
 
 static int helpcounter = 0;
 static bool showBlue = true;
 // 0 initialize the values to not have leftovers
 static GameInputState GameInputs = {new KeyInput[KEYBOARD_INPUTS](),
                                     KEYBOARD_INPUTS};
-
 // images
 static PixelBuffer Grass = {};
 static PixelBuffer Plate = {};
@@ -19,7 +18,11 @@ static SpriteSheet PlayerIdle = {};
 static SpriteSheet FontSprites = {};
 static BitmapFont Font = {};
 static Audio audio;
+static Audio fx;
+static Audio laserSound;
 static Playback pb = {&audio};
+static Playback fxpb = {&fx};
+static Playback laser = {&laserSound};
 static Clock SongClock = {};
 
 // TODO: this way of syncing using a clock doesn't seem to be working
@@ -94,6 +97,10 @@ void game_init()
     GameInputs.Down.identifier = TrimToVariableName(NAMEOF(GameInputs.Down));
     GameInputs.Left.identifier = TrimToVariableName(NAMEOF(GameInputs.Left));
     GameInputs.Right.identifier = TrimToVariableName(NAMEOF(GameInputs.Right));
+    GameInputs.NudgeLeft.identifier = TrimToVariableName(
+                                            NAMEOF(GameInputs.NudgeLeft));
+    GameInputs.NudgeRight.identifier = TrimToVariableName(
+                                            NAMEOF(GameInputs.NudgeRight));
 
     input_init_keyboard(&GameInputs, KEYMAPPING_FILE, WIN_KEYCODE_FILE);
 
@@ -114,18 +121,23 @@ void game_init()
 
     PlayerCenter = PlayerWalking.tile_size / 2;
 
-    Audio audio;
     audio_load_sound(audio, "res/audio/Test2_112BPM_16B.wav");
+    audio_load_sound(fx, "res/audio/FxTest_16B.wav");
+    audio_load_sound(laserSound, "res/audio/LaserFx_16B.wav");
+    laser.volume = 2.5;
     float bpm = 112;
     GroundFrameTime = bpm_to_beat_duration_s(bpm) * 2;
     PlayerWalkingBeatTime = bpm_to_beat_duration_s(bpm) / 8;
     PlayerIdleBeatTime = bpm_to_beat_duration_s(bpm) / 2;
+    logf("Player idle beat time %.3f", PlayerIdleBeatTime);
 
     float elapsed = time_since_start(timer);
     logf("| %.1f ms | Game initialization", elapsed);
 }
 
 static int IdleBeatsPlayed = 0;
+static float Offset_s = 0;
+#define NUDGE_STEPS 0.01;
 
 void game_update()
 {
@@ -137,16 +149,26 @@ void game_update()
     FramesPassed.fetch_sub(framesRead, std::memory_order_acquire);
     FrameCounter += framesRead;
     float playbackDuration = (float)44100 / FrameCounter;
-    int beatsPlayed = playbackDuration / PlayerIdleBeatTime;
+    int beatsPlayed = (playbackDuration - Offset_s) / PlayerIdleBeatTime;
     if (beatsPlayed > IdleBeatsPlayed)
     {
         IdleBeatsPlayed = beatsPlayed;
         nextIdleFrame = true;
     }
 
+    if (GameInputs.NudgeLeft.pressed)
+    {
+        Offset_s -= NUDGE_STEPS;
+    }
+    else if (GameInputs.NudgeRight.pressed)
+    {
+        Offset_s += NUDGE_STEPS;
+    }
+
     if (GameInputs.Help.pressed)
     {
         helpcounter++;
+        audio_start_playback(fxpb);
     }
     else if (GameInputs.Action.is_down)
     {
@@ -154,7 +176,8 @@ void game_update()
     }
     else if (GameInputs.Jump.pressed)
     {
-        showBlue = !showBlue;
+        // audio_start_playback(fxpb);
+        audio_start_playback(laser);
     }
 
     // start audio
@@ -315,8 +338,8 @@ void game_update()
 
     rendering_draw_text(Buffer,
                         Font,
-                        format("Player has HELPED: %i", helpcounter),
-                        v2{Buffer.width, 10},
+                        format("Nudge offset: %.f ms", Offset_s * 1000),
+                        v2{Buffer.width - 14, 14},
                         false);
 
     // hot reload functionality

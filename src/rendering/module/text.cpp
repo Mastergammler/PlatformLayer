@@ -1,6 +1,7 @@
 #include "../internal.h"
 
 // NOTE: supporting uniform sprite sheets only (all letters same width!)
+// TODO: NEGATIVE NUMBERS (because there is no - sign it will not show up)
 void rendering_draw_text(DrawBuffer buffer,
                          BitmapFont font,
                          string text,
@@ -30,6 +31,11 @@ void rendering_draw_text(DrawBuffer buffer,
         else if (isdigit(ascii))
         {
             offset = font.digit_offset;
+        }
+        else if (ascii == '-')
+        {
+            ascii = 'm';
+            offset = font.lower_offset;
         }
         else
         {

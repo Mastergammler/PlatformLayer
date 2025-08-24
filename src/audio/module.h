@@ -26,9 +26,14 @@ struct Audio
 struct Playback
 {
     Audio* data;
-    // channels etc
-    // volume
-    // loop info
+    bool is_playing;
+    bool loop;
+    int cursor_position;
+
+    /* Between 0 and 1? */
+    float volume = 1;
+    /* do this in here? */
+    float pan;
 };
 
 void audio_init();

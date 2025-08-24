@@ -1,5 +1,10 @@
 #include "../internal.h"
 
+timepoint time_stamp()
+{
+    return precision_clock::now();
+}
+
 /*
  * Using the cross platform api, i have to see how the precision is
  * Because the other way (QueryPerformanceCounter/Frequency, LARGE_INTEGER)
