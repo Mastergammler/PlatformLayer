@@ -25,10 +25,9 @@ void audio_load_sound(Audio& sound, std::string file)
 
     if (decoder.outputFormat != DeviceConfig.playback.format)
     {
-        logf("Audio in format %i but expected format %i",
+        logf("[WARN] Audio in format %i but expected format %i",
              decoder.outputFormat,
              DeviceConfig.playback.format);
-        return;
     }
 
     // TODO: resampling is not done automatically
@@ -64,7 +63,7 @@ void audio_load_sound(Audio& sound, std::string file)
                                             NULL);
 
     // TODO: signify buffer and sound loading differently?
-    ma_audio_buffer_init(&bufferConfig, &Buffers[BufferIndex++]);
+    // ma_audio_buffer_init(&bufferConfig, &Buffers[BufferIndex++]);
     ma_decoder_uninit(&decoder);
     sound.loaded = true;
 

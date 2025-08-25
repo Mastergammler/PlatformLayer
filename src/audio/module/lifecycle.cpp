@@ -1,4 +1,5 @@
 #include "../internal.h"
+#include <winbase.h>
 
 ma_context Context;
 ma_device_config DeviceConfig;
@@ -8,21 +9,19 @@ ma_device Device;
 #define SAMPLE_RATE 44100;
 #define BUFFER_SIZE 0 // 128;
 
-static bool AudioDisposed = false;
+static bool UsingMiniAudio = false;
 
-void audio_init()
+void init_via_miniaudio()
 {
     Clock timer = {};
     timer_start(timer);
-    AudioDisposed = false;
-
     Buffers = new ma_audio_buffer[BufferCount];
 
     ma_result result;
     result = ma_context_init(NULL, 0, NULL, &Context);
     if (result != MA_SUCCESS)
     {
-        logf("[Audio] Unable to retrieve audio context %i", result);
+        logf("[miniaudio] Unable to retrieve audio context %i", result);
         return;
     }
 
@@ -35,14 +34,14 @@ void audio_init()
                                     NULL);
     if (result != MA_SUCCESS)
     {
-        logf("[Audio] Unable to read hardware devices: %i", result);
+        logf("[miniaudio] Unable to read hardware devices: %i", result);
         audio_dispose();
         return;
     }
 
     if (deviceCount == 0)
     {
-        logf("[Audio] No output devices found.");
+        logf("[miniaudio] No output devices found.");
         audio_dispose();
         return;
     }
@@ -50,7 +49,7 @@ void audio_init()
     int defaultDevice = 0;
     for (ma_uint32 i = 0; i < deviceCount; i++)
     {
-        logf("[Audio] Device %u: %s", i, deviceInfos[i].name);
+        logf("[miniaudio] Device %u: %s", i, deviceInfos[i].name);
         if (deviceInfos[i].isDefault) defaultDevice = i;
     }
 
@@ -74,7 +73,7 @@ void audio_init()
     result = ma_device_init(&Context, &DeviceConfig, &Device);
     if (result != MA_SUCCESS)
     {
-        logf("[Audio] Device '%s' could not be initalized: %i",
+        logf("[miniaudio] Device '%s' could not be initalized: %i",
              deviceInfos[defaultDevice].name,
              result);
         audio_dispose();
@@ -85,14 +84,16 @@ void audio_init()
     result = ma_device_start(&Device);
     if (result != MA_SUCCESS)
     {
-        logf("[Audio] Device could not be started for playback: %i", result);
+        logf("[miniaudio] Device could not be started for playback: %i",
+             result);
         audio_dispose();
         return;
     }
 
     float initTime = time_since_start(timer);
 
-    logf("[Audio] | %.1f ms | DefaultDevice '%s' with %u channels at %u hz and "
+    logf("[miniaudio] | %.1f ms | DefaultDevice '%s' with %u channels at %u hz "
+         "and "
          "buffer size %i was initialized",
          initTime,
          deviceInfos[defaultDevice].name,
@@ -101,8 +102,21 @@ void audio_init()
          DeviceConfig.periodSizeInFrames);
 }
 
+void audio_init()
+{
+    LogAsioDrivers();
+    int succes = asio_init();
+    if (succes != 0)
+    {
+        init_via_miniaudio();
+        UsingMiniAudio = true;
+    }
+}
+
 void audio_update()
 {
+    // TODO: TESTING ONLY
+    asio_start();
     // for each channel -> call channel.update()
 }
 
@@ -110,11 +124,16 @@ void audio_dispose()
 {
     // if the audio was already disposed this runs into a endless loop
     // TODO: check device and context individually
-    if (AudioDisposed) return;
-
-    ma_device_uninit(&Device);
-    ma_context_uninit(&Context);
-    AudioDisposed = true;
-    delete Buffers;
-    log("[Audio] Disposed");
+    if (UsingMiniAudio)
+    {
+        ma_device_uninit(&Device);
+        ma_context_uninit(&Context);
+        UsingMiniAudio = false;
+        delete Buffers;
+        log("[miniaudio] Disposed");
+    }
+    else
+    {
+        asio_dispose();
+    }
 }

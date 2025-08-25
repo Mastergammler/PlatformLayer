@@ -167,8 +167,9 @@ void game_update()
 
     if (GameInputs.Help.pressed)
     {
+        audio_update();
         helpcounter++;
-        audio_start_playback(fxpb);
+        // audio_start_playback(fxpb);
     }
     else if (GameInputs.Action.is_down)
     {
@@ -177,13 +178,13 @@ void game_update()
     else if (GameInputs.Jump.pressed)
     {
         // audio_start_playback(fxpb);
-        audio_start_playback(laser);
+        // audio_start_playback(laser);
     }
 
     // start audio
     if (!Started)
     {
-        audio_start_playback(pb);
+        // audio_start_playback(pb);
         Started = true;
     }
 

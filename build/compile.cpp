@@ -8,6 +8,7 @@
 #include "../src/timing/compile.cpp"
 
 #ifdef _WIN32
+#include "../src/asio/compile.cpp"
 #include "../src/win32/compile.cpp"
 #else
 // TODO: linux platform layer

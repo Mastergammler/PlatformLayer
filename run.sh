@@ -3,6 +3,10 @@
 OUTPUT_DIR=".build"
 EXEC_NAME=platform-demo.exe
 
+export WINEDEBUG=+asio
+#,+loaddll,+dll,+module
+export WINEPREFIX=~/.gamedev
+
 ./build.sh $OUTPUT_DIR $EXEC_NAME
 
 if [ $? -eq 0 ]; then
@@ -12,4 +16,5 @@ if [ $? -eq 0 ]; then
     # not the current directory from which it was called
     # this is different to how the game itself searches for resources from the directory it was called
     wine $OUTPUT_DIR/$EXEC_NAME debug
+    #wine $OUTPUT_DIR/$EXEC_NAME debug
 fi

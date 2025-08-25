@@ -4,6 +4,7 @@
 #include "module.h"
 #include "types.h"
 
+#include "../asio/module.h"
 #include "../logging/module.h"
 #include "../timing/module.h"
 

@@ -48,6 +48,7 @@ fi
 # - an easy way to do that, is just to create a symbolic link to those "misspelled" files
 SDK_INCLUDES="-isystem $WIN_SDK/um -isystem $WIN_SDK/shared -isystem $WIN_SDK/ucrt -isystem $WIN_SDK/winrt -isystem $WIN_SDK/cppwinrt"
 MSVC_INCLUDES="-isystem $MSVC/include -isystem $MSVC/atlmfc/include"
+ASIO_INCLUDES="-isystem $ASIO_SDK/common -isystem $ASIO_SDK/host -isystem $ASIO_SDK/host/pc"
 
 # libs have the same case insensitive search problem
 # It seems a better approach would be setting up a virtual filesystem, that all works out of the box
@@ -62,7 +63,7 @@ CPP_STD="-std=c++14"
 # LLVM first that clang intrinsics will be used!
 # MSVC handles intrinsics differently than clang, so clang 
 # is not able to use MSVC intrinsics headers
-INCLUDES="-isystem $LLVM/include $MSVC_INCLUDES $SDK_INCLUDES"
+INCLUDES="-isystem $LLVM/include $MSVC_INCLUDES $SDK_INCLUDES $ASIO_INCLUDES"
 LIB_PATHS="$SDK_LIBS $MSVC_LIBS"
 INCLUDE_PRECOMPILED="-include-pch $PRECOMPILE_OUTPUT"
 TARGET="-target x86_64-pc-win32 -fuse-ld=lld"
