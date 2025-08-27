@@ -91,4 +91,6 @@ void logger_dispose()
     logger.log_thread.join();
     FlushFileLogs(logger);
     logger.log_file.close();
+
+    cout << "Logger disposed!" << endl;
 }

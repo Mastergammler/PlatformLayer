@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../audio/module.h"
 #include "../define.h"
 #include "../logging/module.h"
 #include "../timing/module.h"
@@ -10,9 +11,10 @@ using namespace std;
 
 extern AsioDrivers* asioDrivers; // declared in asiodrivers.cpp
 extern ASIOBufferInfo* ChannelBuffers;
-extern int OutputChannels;
-extern int InputChannels;
+extern long OutputChannels;
+extern long InputChannels;
 extern int BufferSize;
+extern u16* MixBuffer;
 
 /** Direct ASIO Driver DSP callback */
 ASIOTime* bufferSwitchTimeInfo(ASIOTime* params,

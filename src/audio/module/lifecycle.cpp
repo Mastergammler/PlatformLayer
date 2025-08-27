@@ -10,6 +10,7 @@ ma_device Device;
 #define BUFFER_SIZE 0 // 128;
 
 static bool UsingMiniAudio = false;
+u16* MixBuffer;
 
 void init_via_miniaudio()
 {
@@ -111,12 +112,16 @@ void audio_init()
         init_via_miniaudio();
         UsingMiniAudio = true;
     }
+    else
+    {
+        asio_start();
+    }
 }
 
 void audio_update()
 {
     // TODO: TESTING ONLY
-    asio_start();
+    // asio_start();
     // for each channel -> call channel.update()
 }
 

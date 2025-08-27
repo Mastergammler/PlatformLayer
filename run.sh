@@ -6,6 +6,8 @@ EXEC_NAME=platform-demo.exe
 export WINEDEBUG=+asio
 #,+loaddll,+dll,+module
 export WINEPREFIX=~/.gamedev
+export WINEASIO_NUMBER_INPUTS=0
+export WINEASIO_NUMBER_OUTPUTS=2
 
 ./build.sh $OUTPUT_DIR $EXEC_NAME
 

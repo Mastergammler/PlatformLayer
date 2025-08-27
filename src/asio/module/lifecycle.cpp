@@ -4,8 +4,8 @@
 
 static ASIOCallbacks asioCb;
 ASIOBufferInfo* ChannelBuffers;
-int OutputChannels;
-int InputChannels;
+long OutputChannels;
+long InputChannels;
 int BufferSize;
 
 int asio_init()
@@ -51,7 +51,6 @@ int asio_init()
     logf("[ASIO] Driver initialized: %s", driverInfo.name);
 
     // Example: get channels
-    long InputChannels = 0, OutputChannels = 0;
     if (ASIOGetChannels(&InputChannels, &OutputChannels) == ASE_OK)
     {
         logf("[ASIO] Inputs: %i, Outputs: %i", InputChannels, OutputChannels);
@@ -172,6 +171,11 @@ sampleRate);
 void asio_start()
 {
     logf("[ASIO] Start");
+    MixBuffer = new u16[BufferSize * OutputChannels];
+    logf("[ASIO] Output channels: %i", OutputChannels);
+    logf("[ASIO] Buffer size %i", BufferSize);
+    logf("[ASIO] Initialized mix buffer of size %i",
+         BufferSize * OutputChannels);
     ASIOStart();
 }
 
@@ -179,6 +183,7 @@ int asio_dispose()
 {
     // Clean up
     ASIOStop();
+    ASIODisposeBuffers();
     delete ChannelBuffers;
     asioDrivers->removeCurrentDriver();
     delete asioDrivers;

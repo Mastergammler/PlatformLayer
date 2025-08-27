@@ -36,6 +36,14 @@ struct Playback
     float pan;
 };
 
+struct PlaybackPool
+{
+    Playback* data;
+    int max_size;
+};
+
+extern PlaybackPool Playbacks;
+
 void audio_init();
 void audio_update();
 void audio_dispose();
@@ -46,5 +54,9 @@ void audio_stop_playback(Playback pb);
 
 extern std::atomic<int> AudioEvent;
 extern std::atomic<int> FramesPassed;
+
+u16 clip(int32_t sample);
+u16 mix_and_clip(u16 a, u16 b);
+u16 adjust_volume(u16 sample, float factor);
 
 // TODO: loudness etc info

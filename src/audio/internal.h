@@ -11,19 +11,13 @@
 using std::atomic;
 using std::memory_order_acq_rel;
 
-struct PlaybackPool
-{
-    Playback* data;
-    int max_size;
-};
-
 extern ma_device_config DeviceConfig;
 extern ma_device Device;
 extern ma_context Context;
 extern ma_audio_buffer* Buffers;
 extern int BufferCount;
 extern int BufferIndex;
-extern PlaybackPool Playbacks;
+// extern PlaybackPool Playbacks;
 
 void data_callback(ma_device* device,
                    void* output,
