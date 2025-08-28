@@ -47,30 +47,39 @@ void bufferSwitch(long index, ASIOBool processNow)
             if (cur->is_playing)
             {
                 soundsAreActive = true;
-                int cursorPositionBefore = cur->cursor_position;
+                int cursorStart = cur->cursor_position;
                 int nextCursorPosition = cur->cursor_position + BufferSize;
+                int cursorEnd = cur->data->samples_per_channel;
+                int totalBufferSize = BufferSize * cur->data->channels;
 
                 // TEST: dunno if this works properly for solo audio,
                 // probably not, because it needs to be mixed differently
                 // at least for left and right
-                int samplesToPlay = cur->data->channels * BufferSize;
+                int audioSamplesToPlay;
                 // sound ends before buffer end
-                int samplesPlayedBefore = cursorPositionBefore *
-                                          cur->data->channels;
+                int sampleStartPosition = cursorStart * cur->data->channels;
 
-                if (nextCursorPosition >= cur->data->samples_per_channel)
+                // play partial buffer
+                if (nextCursorPosition >= cursorEnd)
                 {
-                    int framesToRead = cur->data->total_samples -
-                                       samplesPlayedBefore;
-                    samplesToPlay = framesToRead;
+                    int samplesLeftInAudio = cur->data->total_samples -
+                                             sampleStartPosition;
+                    audioSamplesToPlay = samplesLeftInAudio;
+                }
+                else // play whole buffer
+                {
+                    audioSamplesToPlay = totalBufferSize;
                 }
 
-                int samplesLeftInCurrentBuffer = BufferSize - samplesToPlay;
+                int samplesLeftInPlaybackBuffer = totalBufferSize -
+                                                  audioSamplesToPlay;
                 if (cur->loop)
                 {
-                    if (samplesLeftInCurrentBuffer > 0 ||
-                        nextCursorPosition >= cur->data->samples_per_channel)
-                        nextCursorPosition = samplesLeftInCurrentBuffer;
+                    if (samplesLeftInPlaybackBuffer > 0 ||
+                        nextCursorPosition >= cursorEnd)
+                        // converting sample position back to cursor position
+                        nextCursorPosition = samplesLeftInPlaybackBuffer /
+                                             cur->data->channels;
                 }
 
                 if (isFirstSound)
@@ -83,51 +92,51 @@ void bufferSwitch(long index, ASIOBool processNow)
                     // first sound should override old buffer data!
                     // (dunno if it is nulled already)
                     isFirstSound = false;
-                    for (int i = 0; i < samplesToPlay; i++)
+                    for (int i = 0; i < audioSamplesToPlay; i++)
                     {
                         u16 sample = cur->data->pcm_data[i +
-                                                         samplesPlayedBefore];
+                                                         sampleStartPosition];
                         u16 adjustedSample = adjust_volume(sample, cur->volume);
                         out[i] = adjustedSample;
                     }
 
                     // for looping
-                    for (int i = 0; i < samplesLeftInCurrentBuffer; i++)
+                    for (int i = 0; i < samplesLeftInPlaybackBuffer; i++)
                     {
                         u16 sample = cur->data->pcm_data[i];
                         u16 adjustedSample = adjust_volume(sample, cur->volume);
-                        out[i + samplesToPlay] = adjustedSample;
+                        out[i + audioSamplesToPlay] = adjustedSample;
                     }
                 }
                 else
                 {
-                    for (int i = 0; i < samplesToPlay; i++)
+                    for (int i = 0; i < audioSamplesToPlay; i++)
                     {
                         u16 sample = cur->data->pcm_data[i +
-                                                         samplesPlayedBefore];
+                                                         sampleStartPosition];
                         u16 adjustedSample = adjust_volume(sample, cur->volume);
                         out[i] = mix_and_clip(out[i], adjustedSample);
                     }
 
                     // for looping
-                    for (int i = 0; i < samplesLeftInCurrentBuffer; i++)
+                    for (int i = 0; i < samplesLeftInPlaybackBuffer; i++)
                     {
                         u16 sample = cur->data->pcm_data[i];
                         u16 adjustedSample = adjust_volume(sample, cur->volume);
                         out[i +
-                            samplesToPlay] = mix_and_clip(out[i +
-                                                              samplesToPlay],
-                                                          adjustedSample);
+                            audioSamplesToPlay] = mix_and_clip(out[i +
+                                                                   audioSamplesToPlay],
+                                                               adjustedSample);
                     }
                 }
 
-                if (nextCursorPosition >= cur->data->samples_per_channel)
+                if (nextCursorPosition >= cursorEnd)
                 {
                     logf("Stopping audio: c%i nextc%i loop %d, %i samples left",
                          cur->cursor_position,
                          nextCursorPosition,
                          cur->loop,
-                         samplesLeftInCurrentBuffer);
+                         samplesLeftInPlaybackBuffer);
                     cur->is_playing = false;
                     cur->cursor_position = 0;
                 }
