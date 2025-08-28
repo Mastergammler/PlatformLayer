@@ -2,6 +2,8 @@
 
 #include "../beat.h"
 
+#define NUDGE_STEPS 0.01;
+
 const int KEYBOARD_INPUTS = 11;
 
 static int helpcounter = 0;
@@ -17,6 +19,7 @@ static SpriteSheet SheetTest = {};
 static SpriteSheet PlayerWalking = {};
 static SpriteSheet PlayerIdle = {};
 static SpriteSheet FontSprites = {};
+static SpriteSheet GroundSprites = {};
 static BitmapFont Font = {};
 static Audio audio;
 static Audio fx;
@@ -25,6 +28,7 @@ static Playback songPb = {&audio};
 static Playback fxpb = {&fx};
 static Playback laser = {&laserSound};
 static BeatClock SongClock;
+static DrawBuffer BgCache;
 
 // TODO: this way of syncing using a clock doesn't seem to be working
 //  I probably need to send the frame position (cursor position) from
@@ -38,10 +42,12 @@ static BeatClock SongClock;
 
 // anim
 static int GroundIdx = 0;
+static int GroundOffset = 8;
 
 // player movement
 static f2 PlayerPosition = {0, 0};
 static v2 PlayerCenter = {};
+static v2 GridSize16x16 = {};
 static int PlayerWalkAnimIdx = 0;
 // Offbeat seems just strange
 static int PlayerIdleAnimIdx = 1;
@@ -55,6 +61,7 @@ static bool MusicStarted = false;
 
 // timings
 static DivisionCounter* GroundDivision;
+static DivisionCounter* BgDivision;
 static DivisionCounter* IdleDivision;
 static DivisionCounter* WalkingDivision;
 static DivisionCounter* BeatDivision;
@@ -71,6 +78,13 @@ void game_init()
 {
     Clock timer = {};
     timer_start(timer);
+
+    BgCache = {};
+    BgCache.size = Buffer.size;
+    BgCache.height = Buffer.height;
+    BgCache.width = Buffer.width;
+    BgCache.pixel_count = Buffer.pixel_count;
+    BgCache.memory = new u32[Buffer.pixel_count];
 
     GameInputs.Exit.identifier = TrimToVariableName(NAMEOF(GameInputs.Exit));
     GameInputs.Action.identifier = TrimToVariableName(
@@ -89,6 +103,8 @@ void game_init()
     GameInputs.NudgeRight.identifier = TrimToVariableName(
                                             NAMEOF(GameInputs.NudgeRight));
 
+    GridSize16x16 = v2{Buffer.width / 16, Buffer.height / 16};
+
     input_init_keyboard(&GameInputs, KEYMAPPING_FILE, WIN_KEYCODE_FILE);
 
     load_sprite(Grass, "res/img/tile-grass.png");
@@ -102,12 +118,14 @@ void game_init()
     SheetTest.tiles[3] = swap;
 
     load_sheet(PlayerWalking, "res/img/Anim.png", v2{32, 32});
-    PlayerWalking.tile_count -= 1;
     load_sheet(PlayerIdle, "res/img/Idle.png", v2{32, 32});
     load_sheet(FontSprites, "res/img/Medodica_7x10.png", v2{7, 10});
+    load_sheet(GroundSprites, "res/img/tiles_16x16.png", v2{16, 16});
     Font = BitmapFont{-48, -55, -61, &FontSprites};
 
     PlayerCenter = PlayerWalking.tile_size / 2;
+    // 2 for ground, 2 for player size
+    PlayerPosition = f2{0, (float)(GridSize16x16.y - 2 - 2) * 16};
 
     audio_load_sound(audio, "res/audio/Test2_112BPM_16B.wav");
     audio_load_sound(fx, "res/audio/FxTest_16B.wav");
@@ -119,6 +137,7 @@ void game_init()
     beat_init(SongClock, bpm, 4, divisions, 3);
 
     GroundDivision = beat_find_division(SongClock, 1);
+    BgDivision = beat_find_division(SongClock, 0.5);
     IdleDivision = beat_find_division(SongClock, 2.);
     WalkingDivision = beat_find_division(SongClock, 8.);
     BeatDivision = beat_find_division(SongClock, 1);
@@ -127,10 +146,6 @@ void game_init()
     float elapsed = time_since_start(timer);
     logf("| %.1f ms | Game initialization", elapsed);
 }
-
-static int IdleBeatsPlayed = 0;
-static float Offset_s = 0;
-#define NUDGE_STEPS 0.01;
 
 void game_update()
 {
@@ -172,24 +187,12 @@ void game_update()
     if (!MusicStarted && AudioEvent.load() == AUDIO_START)
     {
         logf("Music start signal received");
-        GroundIdx = ++GroundIdx % SheetTest.tile_count;
+        GroundIdx = (++GroundIdx % 2) + GroundOffset;
         MusicStarted = true;
         beat_start(SongClock);
     }
 
     bool walkingAnim = false;
-
-    // TODO: diagonal speed not normalized
-    if (GameInputs.Up.is_down)
-    {
-        PlayerPosition.y -= PlayerSpeed * GameClock.sim_time;
-        walkingAnim = true;
-    }
-    else if (GameInputs.Down.is_down)
-    {
-        PlayerPosition.y += PlayerSpeed * GameClock.sim_time;
-        walkingAnim = true;
-    }
     if (GameInputs.Left.is_down)
     {
         PlayerPosition.x -= PlayerSpeed * GameClock.sim_time;
@@ -206,12 +209,18 @@ void game_update()
     bool walkingBeatChangeThisFrame = false;
     bool nextIdleFrame = false;
     bool groundChanged = false;
+    bool bgChanged = false;
     if (MusicStarted)
     {
         if (GroundDivision->division_changed_this_frame)
         {
-            GroundIdx = ++GroundIdx % SheetTest.tile_count;
+            GroundIdx = (++GroundIdx % 2) + GroundOffset;
+            // GroundIdx = ++GroundIdx % SheetTest.tile_count;
             groundChanged = true;
+        }
+        if (BgDivision->division_changed_this_frame)
+        {
+            bgChanged = true;
         }
 
         if (IdleDivision->division_changed_this_frame)
@@ -222,12 +231,6 @@ void game_update()
         if (WalkingDivision->division_changed_this_frame)
         {
             walkingBeatChangeThisFrame = true;
-        }
-
-        // TODO: have some trace setup here?!
-        if (nextIdleFrame && groundChanged)
-        {
-            // logf("Idle & ground changed in sync!");
         }
     }
 
@@ -255,22 +258,58 @@ void game_update()
     if (PlayerPosition.y > Buffer.height - PlayerCenter.y)
         PlayerPosition.y = Buffer.height - 1 - PlayerCenter.y;
 
-    rendering_clear_screen(Buffer, BG_BLUE);
-    rendering_fill_screen(Buffer, SheetTest.tiles[GroundIdx]);
-    rendering_draw_sprite(Buffer, playerTile, PlayerPosition, FacingForward);
+    // TODO: cache the current one, and only update on frame changes etc
+    if (bgChanged)
+    {
+        rendering_fill_screen_rng(BgCache, GroundSprites, 0, GroundOffset - 1);
+    }
+    memcpy(Buffer.memory, BgCache.memory, Buffer.size);
 
+    rendering_fill_grid_area(Buffer,
+                             GroundSprites.tiles[GroundIdx],
+                             // FIXME: something here doesn't make any sense
+                             // but ok
+                             v2{0, GridSize16x16.y - 2},
+                             v2{GridSize16x16.x, GridSize16x16.y - 2});
+    rendering_fill_grid_area(Buffer,
+                             GroundSprites.tiles[12],
+                             v2{0, 0},
+                             v2{GridSize16x16.x, 0});
+    rendering_fill_grid_area(Buffer,
+                             GroundSprites.tiles[12],
+                             v2{0, GridSize16x16.y - 1},
+                             v2{GridSize16x16.x, GridSize16x16.y - 1});
+    rendering_fill_grid_area(Buffer,
+                             GroundSprites.tiles[((GroundIdx + 1) % 2) +
+                                                 GroundOffset],
+                             // FIXME:
+                             // something
+                             // here
+                             // doesn't
+                             // make any
+                             // sense
+                             // but ok
+                             v2{0, 1},
+                             v2{GridSize16x16.x, 1},
+                             {true, false});
+
+    rendering_draw_sprite(Buffer, playerTile, PlayerPosition, {FacingForward});
     rendering_draw_text(Buffer,
                         Font,
-                        format("Nudge offset: %.f ms", SongClock.offset * 1000),
-                        v2{Buffer.width - 14, 14},
-                        false);
+                        format("Nudge "
+                               "offset:"
+                               " %.f "
+                               "ms",
+                               SongClock.offset * 1000),
+                        v2{8, 8},
+                        true);
     rendering_draw_text(Buffer,
                         Font,
                         format("Beat: %i %i",
                                MeasureDivision->current_division,
                                BeatDivision->current_division % SongClock.beats_per_measure +
                                                                        1),
-                        v2{Buffer.width - 20, 44},
+                        v2{Buffer.width - 8, 8},
                         false);
 
     // hot reload functionality

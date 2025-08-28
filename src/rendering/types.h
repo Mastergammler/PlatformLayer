@@ -5,6 +5,12 @@
 
 using std::string;
 
+struct DrawOptions
+{
+    bool left_to_right = true;
+    bool top_to_bottom = true;
+};
+
 struct DrawBuffer
 {
     void* memory;

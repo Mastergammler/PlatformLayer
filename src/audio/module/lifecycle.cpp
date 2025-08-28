@@ -105,6 +105,9 @@ void init_via_miniaudio()
 
 void audio_init()
 {
+    Clock timer = {};
+    timer_start(timer);
+
     LogAsioDrivers();
     int succes = asio_init();
     if (succes != 0)
@@ -116,6 +119,9 @@ void audio_init()
     {
         asio_start();
     }
+
+    float initTime = time_since_start(timer);
+    logf("| %.1f ms | [Audio] init", initTime);
 }
 
 void audio_update()

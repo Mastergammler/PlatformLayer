@@ -6,13 +6,25 @@
 
 void rendering_init_buffer(DrawBuffer& buffer, int width, int height);
 void rendering_clear_screen(DrawBuffer buffer, u32 bgColor);
+void rendering_fill_screen_rng(DrawBuffer buffer,
+                               SpriteSheet sprite,
+                               int fromIdx,
+                               int toIdx,
+                               DrawOptions opt = {});
 
-void rendering_fill_screen(DrawBuffer buffer, PixelBuffer sprite);
+void rendering_fill_grid_area(DrawBuffer buffer,
+                              PixelBuffer sprite,
+                              v2 startTile,
+                              v2 endTile,
+                              DrawOptions opt = {});
+void rendering_fill_screen(DrawBuffer buffer,
+                           PixelBuffer sprite,
+                           DrawOptions opt = {});
 
 void rendering_draw_sprite(DrawBuffer buffer,
                            PixelBuffer sprite,
                            v2 position,
-                           bool leftToRight = true);
+                           DrawOptions opt = {});
 
 void rendering_draw_text(DrawBuffer buffer,
                          BitmapFont font,

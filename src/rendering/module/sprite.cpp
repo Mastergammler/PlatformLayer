@@ -1,6 +1,69 @@
 #include "../internal.h"
 
-void rendering_fill_screen(DrawBuffer buffer, PixelBuffer sprite)
+int get_rng_inclusive(int min, int max)
+{
+    return min + rand() % (max - min + 1);
+}
+
+void rendering_fill_grid_area(DrawBuffer buffer,
+                              PixelBuffer sprite,
+                              v2 startTile,
+                              v2 endTile,
+                              DrawOptions opt)
+{
+    int columns = buffer.width / sprite.size.width;
+    int rows = buffer.height / sprite.size.height;
+
+    if (startTile.x == endTile.x) endTile.x++;
+    if (startTile.y == endTile.y) endTile.y++;
+
+    // TODO: validate other way around also -> proper clipping
+    int startRow = startTile.y > 0 ? startTile.y : 0;
+    int endRow = endTile.y <= rows ? endTile.y : rows;
+
+    int startCol = startTile.x > 0 ? startTile.x : 0;
+    int endCol = endTile.x <= columns ? endTile.x : columns;
+
+    for (int y = startRow; y < endRow; y++)
+    {
+        for (int x = startCol; x < endCol; x++)
+        {
+            rendering_draw_sprite(buffer,
+                                  sprite,
+                                  v2{x * sprite.size.width,
+                                     y * sprite.size.height},
+                                  opt);
+        }
+    }
+}
+
+void rendering_fill_screen_rng(DrawBuffer buffer,
+                               SpriteSheet sheet,
+                               int fromIdx,
+                               int toIdx,
+                               DrawOptions opt)
+{
+    int columns = buffer.width / sheet.tile_size.width;
+    int rows = buffer.height / sheet.tile_size.height;
+
+    for (int y = 0; y < rows; y++)
+    {
+        for (int x = 0; x < columns; x++)
+        {
+            int tileIdx = get_rng_inclusive(fromIdx, toIdx);
+            PixelBuffer curSprite = sheet.tiles[tileIdx];
+            rendering_draw_sprite(buffer,
+                                  curSprite,
+                                  v2{x * curSprite.size.width,
+                                     y * curSprite.size.height},
+                                  opt);
+        }
+    }
+}
+
+void rendering_fill_screen(DrawBuffer buffer,
+                           PixelBuffer sprite,
+                           DrawOptions opt)
 {
     int columns = buffer.width / sprite.size.width;
     int rows = buffer.height / sprite.size.height;
@@ -12,7 +75,8 @@ void rendering_fill_screen(DrawBuffer buffer, PixelBuffer sprite)
             rendering_draw_sprite(buffer,
                                   sprite,
                                   v2{x * sprite.size.width,
-                                     y * sprite.size.height});
+                                     y * sprite.size.height},
+                                  opt);
         }
     }
 }
@@ -43,7 +107,7 @@ void debug_unsafe_draw(DrawBuffer buffer, PixelBuffer sprite, v2 pos)
 void rendering_draw_sprite(DrawBuffer buffer,
                            PixelBuffer sprite,
                            v2 pos,
-                           bool leftToRight)
+                           DrawOptions opt)
 {
     if (pos.x >= buffer.width || pos.x < 0 - sprite.size.width ||
         pos.y >= buffer.height || pos.y < 0 - sprite.size.height)
@@ -76,7 +140,13 @@ void rendering_draw_sprite(DrawBuffer buffer,
         bufferPixel = bufferStart + y * buffer.width;
         bitmapPixel = bitmapStart + y * sprite.size.width;
 
-        if (!leftToRight) bitmapPixel = bitmapPixel + sprite.size.width - 1;
+        if (!opt.left_to_right)
+            bitmapPixel = bitmapPixel + sprite.size.width - 1;
+        if (!opt.top_to_bottom)
+        {
+            int yInverse = yVisible - y - 1;
+            bufferPixel = bufferStart + yInverse * buffer.width;
+        }
 
         for (int x = 0; x < xVisible; x++)
         {
@@ -91,7 +161,7 @@ void rendering_draw_sprite(DrawBuffer buffer,
             }
 
             bufferPixel++;
-            if (leftToRight)
+            if (opt.left_to_right)
                 bitmapPixel++;
             else
                 bitmapPixel--;

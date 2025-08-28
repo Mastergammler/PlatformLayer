@@ -132,11 +132,10 @@ void bufferSwitch(long index, ASIOBool processNow)
 
                 if (nextCursorPosition >= cursorEnd)
                 {
-                    logf("Stopping audio: c%i nextc%i loop %d, %i samples left",
-                         cur->cursor_position,
-                         nextCursorPosition,
+                    /*logf("Stopping audio: c%i nextc%i loop %d, %i samples
+                       left", cur->cursor_position, nextCursorPosition,
                          cur->loop,
-                         samplesLeftInPlaybackBuffer);
+                         samplesLeftInPlaybackBuffer);*/
                     cur->is_playing = false;
                     cur->cursor_position = 0;
                 }
