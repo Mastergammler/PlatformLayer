@@ -6,19 +6,25 @@
 // TODO: handle Interleaved vs output channel wise conversion
 // -> during loading ...
 
+#define MASTER_LEVEL 0.35
+
 float convert_PCM16_to_float(u16 sample)
 {
     int16_t singed = sample;
     return (float)singed / (INT16_MAX + 1);
 }
 
+static int switchCounter = 0;
+
+/*
+ * According to common folk lore, this function is called when the
+ * first sample of the previous buffer is getting playde
+ * So theoretically there should be a delay of 1x buffer size
+ * For some reason, the asio latency reported is double that,
+ * not 100% why that is
+ */
 void bufferSwitch(long index, ASIOBool processNow)
 {
-    if (AudioEvent.load() == 0)
-    {
-        AudioEvent.fetch_or(AUDIO_START, memory_order_acq_rel);
-        AudioEvent.fetch_or(AUDIO_START);
-    }
 
     // zero out buffer, before new mixing
     // -> can be optimized?
@@ -42,65 +48,95 @@ void bufferSwitch(long index, ASIOBool processNow)
             {
                 soundsAreActive = true;
                 int cursorPositionBefore = cur->cursor_position;
-                cur->cursor_position += BufferSize;
+                int nextCursorPosition = cur->cursor_position + BufferSize;
 
                 // TEST: dunno if this works properly for solo audio,
                 // probably not, because it needs to be mixed differently
-                int sampleDataCount = cur->data->channels * BufferSize;
+                // at least for left and right
+                int samplesToPlay = cur->data->channels * BufferSize;
                 // sound ends before buffer end
-                int samplesReadBefore = cursorPositionBefore *
-                                        cur->data->channels;
+                int samplesPlayedBefore = cursorPositionBefore *
+                                          cur->data->channels;
 
-                if (cur->cursor_position >= cur->data->samples_per_channel)
+                if (nextCursorPosition >= cur->data->samples_per_channel)
                 {
                     int framesToRead = cur->data->total_samples -
-                                       samplesReadBefore;
-                    sampleDataCount = framesToRead;
+                                       samplesPlayedBefore;
+                    samplesToPlay = framesToRead;
                 }
 
-                /*logf("Start mixing sound %i, starting at cursor pos: %i, %i "
-                     "samples this buffer",
-                     i,
-                     cursorPositionBefore,
-                     sampleDataCount);*/
+                int samplesLeftInCurrentBuffer = BufferSize - samplesToPlay;
+                if (cur->loop)
+                {
+                    if (samplesLeftInCurrentBuffer > 0 ||
+                        nextCursorPosition >= cur->data->samples_per_channel)
+                        nextCursorPosition = samplesLeftInCurrentBuffer;
+                }
+
                 if (isFirstSound)
                 {
+                    if (AudioEvent.load() == 0)
+                    {
+                        AudioEvent.fetch_or(AUDIO_START, memory_order_acq_rel);
+                        AudioEvent.fetch_or(AUDIO_START);
+                    }
                     // first sound should override old buffer data!
                     // (dunno if it is nulled already)
                     isFirstSound = false;
-                    for (int i = 0; i < sampleDataCount; i++)
+                    for (int i = 0; i < samplesToPlay; i++)
                     {
-                        u16 sample = cur->data->pcm_data[i + samplesReadBefore];
+                        u16 sample = cur->data->pcm_data[i +
+                                                         samplesPlayedBefore];
                         u16 adjustedSample = adjust_volume(sample, cur->volume);
                         out[i] = adjustedSample;
+                    }
+
+                    // for looping
+                    for (int i = 0; i < samplesLeftInCurrentBuffer; i++)
+                    {
+                        u16 sample = cur->data->pcm_data[i];
+                        u16 adjustedSample = adjust_volume(sample, cur->volume);
+                        out[i + samplesToPlay] = adjustedSample;
                     }
                 }
                 else
                 {
-                    for (int i = 0; i < sampleDataCount; i++)
+                    for (int i = 0; i < samplesToPlay; i++)
                     {
-                        u16 sample = cur->data->pcm_data[i + samplesReadBefore];
+                        u16 sample = cur->data->pcm_data[i +
+                                                         samplesPlayedBefore];
                         u16 adjustedSample = adjust_volume(sample, cur->volume);
                         out[i] = mix_and_clip(out[i], adjustedSample);
                     }
+
+                    // for looping
+                    for (int i = 0; i < samplesLeftInCurrentBuffer; i++)
+                    {
+                        u16 sample = cur->data->pcm_data[i];
+                        u16 adjustedSample = adjust_volume(sample, cur->volume);
+                        out[i +
+                            samplesToPlay] = mix_and_clip(out[i +
+                                                              samplesToPlay],
+                                                          adjustedSample);
+                    }
                 }
 
-                if (cur->cursor_position >= cur->data->samples_per_channel)
+                if (nextCursorPosition >= cur->data->samples_per_channel)
                 {
+                    logf("Stopping audio: c%i nextc%i loop %d, %i samples left",
+                         cur->cursor_position,
+                         nextCursorPosition,
+                         cur->loop,
+                         samplesLeftInCurrentBuffer);
                     cur->is_playing = false;
                     cur->cursor_position = 0;
                 }
+                else
+                {
+                    cur->cursor_position = nextCursorPosition;
+                }
             }
         }
-    }
-
-    if (soundsAreActive)
-    {
-        /*logf("Sound samples:");
-        for (int i = 0; i < 64; i++)
-        {
-            logf("%i: %i", i, out[i]);
-        }*/
     }
 
     for (int i = 0; i < OutputChannels; i++)
@@ -116,12 +152,11 @@ void bufferSwitch(long index, ASIOBool processNow)
              interS += OutputChannels)
         {
             float outputSample = convert_PCM16_to_float(MixBuffer[interS]);
-            curOut[outS++] = 0.5 * outputSample;
+            curOut[outS++] = MASTER_LEVEL * outputSample;
         }
     }
 }
 
-static int switchCounter = 0;
 ASIOTime* bufferSwitchTimeInfo(ASIOTime* params,
                                long doubleBufferIndex,
                                ASIOBool directProcess)

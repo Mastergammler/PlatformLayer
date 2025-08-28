@@ -1,5 +1,7 @@
 #pragma once
 
+#include <atomic>
+#include <cassert>
 #include <chrono>
 #include <string>
 #include <thread>

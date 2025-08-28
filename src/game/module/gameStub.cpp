@@ -1,5 +1,6 @@
 #include "../internal.h"
-#include <atomic>
+
+#include "../beat.h"
 
 const int KEYBOARD_INPUTS = 11;
 
@@ -20,10 +21,10 @@ static BitmapFont Font = {};
 static Audio audio;
 static Audio fx;
 static Audio laserSound;
-static Playback pb = {&audio};
+static Playback songPb = {&audio};
 static Playback fxpb = {&fx};
 static Playback laser = {&laserSound};
-static Clock SongClock = {};
+static BeatClock SongClock;
 
 // TODO: this way of syncing using a clock doesn't seem to be working
 //  I probably need to send the frame position (cursor position) from
@@ -36,9 +37,7 @@ static Clock SongClock = {};
 // - Syncing player input & syncing to audio in general
 
 // anim
-static float Elapsed = 0;
 static int GroundIdx = 0;
-static float GroundFrameTime = 1;
 
 // player movement
 static f2 PlayerPosition = {0, 0};
@@ -48,36 +47,24 @@ static int PlayerWalkAnimIdx = 0;
 static int PlayerIdleAnimIdx = 1;
 static float PlayerIdleElapsed = 0;
 // frame time should be in relation to player speed
-static float PlayerSpeed = 0.4;
-static float PlayerWalkingBeatTime = 1;
-static float PlayerIdleBeatTime = 1;
+static float PlayerSpeed = 40;
 static bool FacingForward = true;
 
 static bool Started = false;
 static bool MusicStarted = false;
 
-// ms in which the flip for the previous frame is accepted
-// -> should be roughly synchronized with fps
-static float PreBeatThreshold = 0.005;
-// if the animation flip happend already
-static bool PreBeatChange = false;
-static bool IdlePreBeatChange = false;
-static int BeatCounter = 0;
-static float WalkingElapsed = 0;
-
-static int FrameCounter = 0;
+// timings
+static DivisionCounter* GroundDivision;
+static DivisionCounter* IdleDivision;
+static DivisionCounter* WalkingDivision;
+static DivisionCounter* BeatDivision;
+static DivisionCounter* MeasureDivision;
 
 // TODO: MOVETO parsing
 string TrimToVariableName(string s)
 {
     size_t pos = s.find_last_of('.');
     return pos == string::npos ? s : s.substr(pos + 1);
-}
-
-float bpm_to_beat_duration_s(float bpm)
-{
-    float minute_to_s = 60;
-    return minute_to_s / bpm;
 }
 
 void game_init()
@@ -115,6 +102,7 @@ void game_init()
     SheetTest.tiles[3] = swap;
 
     load_sheet(PlayerWalking, "res/img/Anim.png", v2{32, 32});
+    PlayerWalking.tile_count -= 1;
     load_sheet(PlayerIdle, "res/img/Idle.png", v2{32, 32});
     load_sheet(FontSprites, "res/img/Medodica_7x10.png", v2{7, 10});
     Font = BitmapFont{-48, -55, -61, &FontSprites};
@@ -125,11 +113,16 @@ void game_init()
     audio_load_sound(fx, "res/audio/FxTest_16B.wav");
     audio_load_sound(laserSound, "res/audio/LaserFx_16B.wav");
     laser.volume = 2.5;
+    songPb.loop = true;
     float bpm = 112;
-    GroundFrameTime = bpm_to_beat_duration_s(bpm) * 2;
-    PlayerWalkingBeatTime = bpm_to_beat_duration_s(bpm) / 8;
-    PlayerIdleBeatTime = bpm_to_beat_duration_s(bpm) / 2;
-    logf("Player idle beat time %.3f", PlayerIdleBeatTime);
+    float divisions[] = {.5, 2, 8};
+    beat_init(SongClock, bpm, 4, divisions, 3);
+
+    GroundDivision = beat_find_division(SongClock, 1);
+    IdleDivision = beat_find_division(SongClock, 2.);
+    WalkingDivision = beat_find_division(SongClock, 8.);
+    BeatDivision = beat_find_division(SongClock, 1);
+    MeasureDivision = beat_find_division(SongClock, 0.25);
 
     float elapsed = time_since_start(timer);
     logf("| %.1f ms | Game initialization", elapsed);
@@ -141,39 +134,26 @@ static float Offset_s = 0;
 
 void game_update()
 {
-    if (GameInputs.Exit.released) engine_stop();
+    if (MusicStarted) beat_update(SongClock);
 
-    bool walkingBeatChangeThisFrame = false;
-    bool nextIdleFrame = false;
-    int framesRead = FramesPassed.load(std::memory_order_acquire);
-    FramesPassed.fetch_sub(framesRead, std::memory_order_acquire);
-    FrameCounter += framesRead;
-    float playbackDuration = (float)44100 / FrameCounter;
-    int beatsPlayed = (playbackDuration - Offset_s) / PlayerIdleBeatTime;
-    if (beatsPlayed > IdleBeatsPlayed)
-    {
-        IdleBeatsPlayed = beatsPlayed;
-        nextIdleFrame = true;
-    }
+    if (GameInputs.Exit.released) engine_stop();
 
     if (GameInputs.NudgeLeft.pressed)
     {
-        Offset_s -= NUDGE_STEPS;
+        SongClock.offset -= NUDGE_STEPS;
     }
     else if (GameInputs.NudgeRight.pressed)
     {
-        Offset_s += NUDGE_STEPS;
+        SongClock.offset += NUDGE_STEPS;
     }
 
     if (GameInputs.Help.pressed)
     {
-        audio_update();
         helpcounter++;
         audio_start_playback(fxpb);
     }
     else if (GameInputs.Action.is_down)
     {
-        logf("Audio did play %i frames this frame", framesRead);
     }
     else if (GameInputs.Jump.pressed)
     {
@@ -184,16 +164,17 @@ void game_update()
     // start audio
     if (!Started)
     {
-        audio_start_playback(pb);
+        audio_start_playback(songPb);
         Started = true;
     }
 
     // sync audio
     if (!MusicStarted && AudioEvent.load() == AUDIO_START)
     {
+        logf("Music start signal received");
         GroundIdx = ++GroundIdx % SheetTest.tile_count;
         MusicStarted = true;
-        timer_start(SongClock);
+        beat_start(SongClock);
     }
 
     bool walkingAnim = false;
@@ -201,53 +182,52 @@ void game_update()
     // TODO: diagonal speed not normalized
     if (GameInputs.Up.is_down)
     {
-        PlayerPosition.y -= PlayerSpeed;
+        PlayerPosition.y -= PlayerSpeed * GameClock.sim_time;
         walkingAnim = true;
     }
     else if (GameInputs.Down.is_down)
     {
-        PlayerPosition.y += PlayerSpeed;
+        PlayerPosition.y += PlayerSpeed * GameClock.sim_time;
         walkingAnim = true;
     }
     if (GameInputs.Left.is_down)
     {
-        PlayerPosition.x -= PlayerSpeed;
+        PlayerPosition.x -= PlayerSpeed * GameClock.sim_time;
         walkingAnim = true;
         FacingForward = false;
     }
     else if (GameInputs.Right.is_down)
     {
-        PlayerPosition.x += PlayerSpeed;
+        PlayerPosition.x += PlayerSpeed * GameClock.sim_time;
         walkingAnim = true;
         FacingForward = true;
     }
 
+    bool walkingBeatChangeThisFrame = false;
+    bool nextIdleFrame = false;
+    bool groundChanged = false;
     if (MusicStarted)
     {
-        timer_update(SongClock);
-        Elapsed += SongClock.sim_time;
-        if (Elapsed > GroundFrameTime)
+        if (GroundDivision->division_changed_this_frame)
         {
-            Elapsed -= GroundFrameTime;
             GroundIdx = ++GroundIdx % SheetTest.tile_count;
+            groundChanged = true;
         }
-    }
 
-    if (MusicStarted)
-    {
-        WalkingElapsed += SongClock.sim_time;
-        if (WalkingElapsed >= PlayerWalkingBeatTime)
+        if (IdleDivision->division_changed_this_frame)
         {
-            WalkingElapsed -= PlayerWalkingBeatTime;
-            BeatCounter++;
+            nextIdleFrame = true;
+        }
+
+        if (WalkingDivision->division_changed_this_frame)
+        {
             walkingBeatChangeThisFrame = true;
         }
 
-        PlayerIdleElapsed += SongClock.sim_time;
-        if (PlayerIdleElapsed >= PlayerIdleBeatTime)
+        // TODO: have some trace setup here?!
+        if (nextIdleFrame && groundChanged)
         {
-            PlayerIdleElapsed -= PlayerIdleBeatTime;
-            nextIdleFrame = true;
+            // logf("Idle & ground changed in sync!");
         }
     }
 
@@ -257,67 +237,9 @@ void game_update()
     }
 
     // playing exit frame until player start
-    if (walkingAnim)
+    if (walkingAnim && walkingBeatChangeThisFrame)
     {
-        // this beat vs last beat calculation etc
-        float beatsPartial = time_since_start(SongClock) * 1000 /
-                             PlayerWalkingBeatTime;
-
-        float fullBeatsTime = (int)beatsPartial * PlayerWalkingBeatTime;
-        float timeInCurBeat = beatsPartial - fullBeatsTime;
-        // Pre beat condition
-        if (timeInCurBeat > (PlayerWalkingBeatTime - PreBeatThreshold) &&
-            !PreBeatChange)
-        {
-            PreBeatChange = true;
-            PlayerWalkAnimIdx = ++PlayerWalkAnimIdx % PlayerWalking.tile_count;
-        }
-        else if (walkingBeatChangeThisFrame)
-        {
-            if (!PreBeatChange)
-            {
-                PlayerWalkAnimIdx = ++PlayerWalkAnimIdx %
-                                    PlayerWalking.tile_count;
-            }
-            PreBeatChange = false;
-        }
-    }
-    else
-    {
-        // TODO: this isn't really synced, this doesn't work yet
-        //->  i guess it's too much of a mess anyway to do this properly
-        // currently
-        //=> I need to clean this up accordingly
-        //  this beat vs last beat calculation etc
-        /*float beatsPartial = time_since_start(SongClock) / 1000 /
-                             PlayerIdleBeatTime;
-
-        float fullBeatsTime = (int)beatsPartial * PlayerIdleBeatTime;
-        float timeInCurBeat = beatsPartial - fullBeatsTime;
-        // Pre beat condition
-        if (timeInCurBeat > (PlayerIdleBeatTime - PreBeatThreshold) &&
-            !IdlePreBeatChange)
-        {
-            IdlePreBeatChange = true;
-            PlayerIdleAnimIdx = ++PlayerIdleAnimIdx % PlayerIdle.tile_count;
-            logf("Anim for Beat %i animIdx %i groundIdx %i",
-                 (int)beatsPartial + 1,
-                 PlayerIdleAnimIdx,
-                 GroundIdx);
-    }
-    else if (idleBeatChangeThisFrame)
-    {
-        if (!IdlePreBeatChange)
-        {
-            PlayerIdleAnimIdx = ++PlayerIdleAnimIdx % PlayerIdle.tile_count;
-            logf("Beat %i animIdx %i groundIdx %i",
-                 (int)beatsPartial,
-                 PlayerIdleAnimIdx,
-                 GroundIdx);
-        }
-        IdlePreBeatChange = false;
-    }
-    */
+        PlayerWalkAnimIdx = ++PlayerWalkAnimIdx % PlayerWalking.tile_count;
     }
 
     PixelBuffer playerTile;
@@ -339,8 +261,16 @@ void game_update()
 
     rendering_draw_text(Buffer,
                         Font,
-                        format("Nudge offset: %.f ms", Offset_s * 1000),
+                        format("Nudge offset: %.f ms", SongClock.offset * 1000),
                         v2{Buffer.width - 14, 14},
+                        false);
+    rendering_draw_text(Buffer,
+                        Font,
+                        format("Beat: %i %i",
+                               MeasureDivision->current_division,
+                               BeatDivision->current_division % SongClock.beats_per_measure +
+                                                                       1),
+                        v2{Buffer.width - 20, 44},
                         false);
 
     // hot reload functionality

@@ -76,11 +76,13 @@ int asio_init()
              driverInfo.name);
     }
 
-    ASIOSampleRate sampleRate;
-    err = ASIOGetSampleRate(&sampleRate);
+    double sampleRate = 1;
+    ASIOSampleRate sampleRateStruct;
+    err = ASIOGetSampleRate(&sampleRateStruct);
     if (err == ASE_OK)
     {
-        logf("[ASIO] Device sample rate: %.f Hz", sampleRate);
+        logf("[ASIO] Device sample rate: %.f Hz", sampleRateStruct);
+        sampleRate = *reinterpret_cast<double*>(sampleRateStruct.ieee);
     }
     else
     {
@@ -156,9 +158,11 @@ sampleRate);
         err = ASIOGetLatencies(&inputLatency, &outputLatency);
         if (err == ASE_OK)
         {
-            logf("[ASIO] Reported driver latency (in/out):  %ld spls/%ld spls",
+            logf("[ASIO] Reported driver latency (in/out):  %ld spls/%ld spls "
+                 "(%.1f ms)",
                  inputLatency,
-                 outputLatency);
+                 outputLatency,
+                 outputLatency / sampleRate * 1000);
         }
     }
 

@@ -12,6 +12,8 @@
 #include "module.h"
 #include "types.h"
 
+#include "beat/types.h"
+
 extern DrawBuffer Buffer;
 extern Clock GameClock;
 
