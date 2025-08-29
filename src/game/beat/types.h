@@ -16,7 +16,7 @@ struct DivisionCounter
     float divisions_per_beat;
 };
 
-struct BeatClock
+struct BeatCounter
 {
     float bpm;
     /** unit: s */

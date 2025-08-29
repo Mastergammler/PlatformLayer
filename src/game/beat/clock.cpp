@@ -1,10 +1,9 @@
 #include "../internal.h"
-#include "types.h"
 
 #define DEFAULT_DIVISION_COUNT 2
 static float DEFAULT_DIVISIONS[] = {BEAT_DIVISIONS, MEASURE_DIVISIONS};
 
-void beat_init(BeatClock& clock,
+void beat_init(BeatCounter& clock,
                float bpm,
                int beatsPerMeasure,
                float* divisions,
@@ -36,7 +35,7 @@ void beat_init(BeatClock& clock,
     }
 }
 
-DivisionCounter* beat_find_division(BeatClock& clock, float divisionsPerBeat)
+DivisionCounter* beat_find_division(BeatCounter& clock, float divisionsPerBeat)
 {
     for (int i = 0; i < clock.division_count; i++)
     {
@@ -48,12 +47,18 @@ DivisionCounter* beat_find_division(BeatClock& clock, float divisionsPerBeat)
     return {};
 }
 
-void beat_start(BeatClock& clock)
+void beat_start(BeatCounter& clock)
 {
     timer_start(clock.timer);
+
+    // init first beat changes
+    for (int i = 0; i < clock.division_count; i++)
+    {
+        clock.divisions[i].division_changed_this_frame = true;
+    }
 }
 
-void beat_update(BeatClock& clock)
+void beat_update(BeatCounter& clock)
 {
     timer_update(clock.timer);
     clock.elapsed += clock.timer.sim_time;
@@ -65,6 +70,9 @@ void beat_update(BeatClock& clock)
     {
         DivisionCounter* div = &clock.divisions[i];
         float divDec = (clock.elapsed + clock.offset) / div->time_per_division;
+
+        // FIXME: there seems to be a off-by-one for the masures, but the rest
+        // seems fine
         if (divDec >= div->current_division + 1)
         {
             div->current_division++;

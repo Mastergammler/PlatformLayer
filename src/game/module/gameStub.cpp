@@ -1,6 +1,8 @@
 #include "../internal.h"
 
 #include "../beat.h"
+#include "../player.h"
+#include "../world.h"
 
 #define NUDGE_STEPS 0.01;
 
@@ -27,8 +29,12 @@ static Audio laserSound;
 static Playback songPb = {&audio};
 static Playback fxpb = {&fx};
 static Playback laser = {&laserSound};
-static BeatClock SongClock;
+static BeatCounter SongClock;
 static DrawBuffer BgCache;
+static Player Player;
+// world stuff
+static WorldGrid World;
+static WorldTile BoxTile;
 
 // TODO: this way of syncing using a clock doesn't seem to be working
 //  I probably need to send the frame position (cursor position) from
@@ -40,30 +46,16 @@ static DrawBuffer BgCache;
 // is, if it's playable etc -> because that's the other issue
 // - Syncing player input & syncing to audio in general
 
-// anim
+// TODO: move to
 static int GroundIdx = 0;
 static int GroundOffset = 8;
-
-// player movement
-static f2 PlayerPosition = {0, 0};
-static v2 PlayerCenter = {};
 static v2 GridSize16x16 = {};
-static int PlayerWalkAnimIdx = 0;
-// Offbeat seems just strange
-static int PlayerIdleAnimIdx = 1;
-static float PlayerIdleElapsed = 0;
-// frame time should be in relation to player speed
-static float PlayerSpeed = 40;
-static bool FacingForward = true;
-
 static bool Started = false;
 static bool MusicStarted = false;
 
 // timings
 static DivisionCounter* GroundDivision;
 static DivisionCounter* BgDivision;
-static DivisionCounter* IdleDivision;
-static DivisionCounter* WalkingDivision;
 static DivisionCounter* BeatDivision;
 static DivisionCounter* MeasureDivision;
 
@@ -123,23 +115,39 @@ void game_init()
     load_sheet(GroundSprites, "res/img/tiles_16x16.png", v2{16, 16});
     Font = BitmapFont{-48, -55, -61, &FontSprites};
 
-    PlayerCenter = PlayerWalking.tile_size / 2;
-    // 2 for ground, 2 for player size
-    PlayerPosition = f2{0, (float)(GridSize16x16.y - 2 - 2) * 16};
-
     audio_load_sound(audio, "res/audio/Test2_112BPM_16B.wav");
     audio_load_sound(fx, "res/audio/FxTest_16B.wav");
     audio_load_sound(laserSound, "res/audio/LaserFx_16B.wav");
     laser.volume = 2.5;
     songPb.loop = true;
+
     float bpm = 112;
     float divisions[] = {.5, 2, 8};
     beat_init(SongClock, bpm, 4, divisions, 3);
+    player_init(Player, SongClock, &PlayerIdle, &PlayerWalking, GridSize16x16);
+    Player.is_walking = true;
+    Player.facing_forward = true;
+
+    // world init testing
+    world_init(World, 128, 0, GridSize16x16.x + 2);
+    world_init_tile(BoxTile, SongClock, &GroundSprites, 10, 2, 0.5);
+    world_add_tile(World, BoxTile, 3);
+    world_add_tile(World, BoxTile, 7);
+    world_add_tile(World, BoxTile, 10);
+    world_add_tile(World, BoxTile, 20);
+    world_add_tile(World, BoxTile, 40);
+    world_add_tile(World, BoxTile, 53);
+    world_add_tile(World, BoxTile, 88);
+    world_add_tile(World, BoxTile, 89);
+    world_add_tile(World, BoxTile, 100);
+    world_add_tile(World, BoxTile, 102);
+    world_add_tile(World, BoxTile, 110);
+    world_add_tile(World, BoxTile, 125);
+    world_add_tile(World, BoxTile, 126);
+    world_add_tile(World, BoxTile, 127);
 
     GroundDivision = beat_find_division(SongClock, 1);
     BgDivision = beat_find_division(SongClock, 0.5);
-    IdleDivision = beat_find_division(SongClock, 2.);
-    WalkingDivision = beat_find_division(SongClock, 8.);
     BeatDivision = beat_find_division(SongClock, 1);
     MeasureDivision = beat_find_division(SongClock, 0.25);
 
@@ -149,8 +157,6 @@ void game_init()
 
 void game_update()
 {
-    if (MusicStarted) beat_update(SongClock);
-
     if (GameInputs.Exit.released) engine_stop();
 
     if (GameInputs.NudgeLeft.pressed)
@@ -183,32 +189,20 @@ void game_update()
         Started = true;
     }
 
-    // sync audio
-    if (!MusicStarted && AudioEvent.load() == AUDIO_START)
-    {
-        logf("Music start signal received");
-        GroundIdx = (++GroundIdx % 2) + GroundOffset;
-        MusicStarted = true;
-        beat_start(SongClock);
-    }
-
-    bool walkingAnim = false;
     if (GameInputs.Left.is_down)
     {
-        PlayerPosition.x -= PlayerSpeed * GameClock.sim_time;
-        walkingAnim = true;
-        FacingForward = false;
+        // player_move(Player, false);
     }
     else if (GameInputs.Right.is_down)
     {
-        PlayerPosition.x += PlayerSpeed * GameClock.sim_time;
-        walkingAnim = true;
-        FacingForward = true;
+        // player_move(Player, true);
+    }
+    else if (GameInputs.Left.released || GameInputs.Right.released)
+    {
+        // Player.is_walking = false;
+        //  Player.walking_idx = 0;
     }
 
-    bool walkingBeatChangeThisFrame = false;
-    bool nextIdleFrame = false;
-    bool groundChanged = false;
     bool bgChanged = false;
     if (MusicStarted)
     {
@@ -216,47 +210,39 @@ void game_update()
         {
             GroundIdx = (++GroundIdx % 2) + GroundOffset;
             // GroundIdx = ++GroundIdx % SheetTest.tile_count;
-            groundChanged = true;
         }
         if (BgDivision->division_changed_this_frame)
         {
             bgChanged = true;
         }
-
-        if (IdleDivision->division_changed_this_frame)
+        if (BeatDivision->division_changed_this_frame)
         {
-            nextIdleFrame = true;
-        }
-
-        if (WalkingDivision->division_changed_this_frame)
-        {
-            walkingBeatChangeThisFrame = true;
+            if (World.start_index + World.visibile_tiles - 1 <
+                World.tile_count + 1)
+            {
+                World.start_index++;
+            }
         }
     }
 
-    if (!walkingAnim && nextIdleFrame)
+    if (MusicStarted) beat_update(SongClock);
+    player_update(Player);
+    world_update(World);
+
+    // sync audio
+    if (!MusicStarted && AudioEvent.load() == AUDIO_START)
     {
-        PlayerIdleAnimIdx = ++PlayerIdleAnimIdx % PlayerIdle.tile_count;
+        logf("Music start signal received");
+        beat_start(SongClock);
+        GroundIdx = (++GroundIdx % 2) + GroundOffset;
+        MusicStarted = true;
     }
-
-    // playing exit frame until player start
-    if (walkingAnim && walkingBeatChangeThisFrame)
-    {
-        PlayerWalkAnimIdx = ++PlayerWalkAnimIdx % PlayerWalking.tile_count;
-    }
-
-    PixelBuffer playerTile;
-    if (walkingAnim)
-        playerTile = PlayerWalking.tiles[PlayerWalkAnimIdx];
-    else
-        playerTile = PlayerIdle.tiles[PlayerIdleAnimIdx];
-
-    if (PlayerPosition.x < -PlayerCenter.x) PlayerPosition.x = -PlayerCenter.x;
-    if (PlayerPosition.y < -PlayerCenter.y) PlayerPosition.y = -PlayerCenter.y;
-    if (PlayerPosition.x > Buffer.width - PlayerCenter.x)
+    /*if (PlayerPosition.x < -PlayerCenter.x) PlayerPosition.x =
+    -PlayerCenter.x; if (PlayerPosition.y < -PlayerCenter.y) PlayerPosition.y =
+    -PlayerCenter.y; if (PlayerPosition.x > Buffer.width - PlayerCenter.x)
         PlayerPosition.x = Buffer.width - 1 - PlayerCenter.x;
     if (PlayerPosition.y > Buffer.height - PlayerCenter.y)
-        PlayerPosition.y = Buffer.height - 1 - PlayerCenter.y;
+        PlayerPosition.y = Buffer.height - 1 - PlayerCenter.y;*/
 
     // TODO: cache the current one, and only update on frame changes etc
     if (bgChanged)
@@ -293,7 +279,24 @@ void game_update()
                              v2{GridSize16x16.x, 1},
                              {true, false});
 
-    rendering_draw_sprite(Buffer, playerTile, PlayerPosition, {FacingForward});
+    for (int i = 0; i < World.visibile_tiles; i++)
+    {
+        int tileIdx = i + World.start_index;
+
+        // TODO: grid space to pixel space conversion
+        if (World.tiles[tileIdx].is_visible)
+        {
+            rendering_draw_sprite(Buffer,
+                                  *World.tiles[tileIdx].current_sprite,
+                                  v2{i * 16, (GridSize16x16.y - 3) * 16});
+        }
+    }
+
+    // UI drawing stuff
+    rendering_draw_sprite(Buffer,
+                          *Player.current_sprite,
+                          Player.position,
+                          {Player.facing_forward});
     rendering_draw_text(Buffer,
                         Font,
                         format("Nudge "

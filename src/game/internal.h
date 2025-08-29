@@ -13,6 +13,8 @@
 #include "types.h"
 
 #include "beat/types.h"
+#include "player/types.h"
+#include "world/types.h"
 
 extern DrawBuffer Buffer;
 extern Clock GameClock;

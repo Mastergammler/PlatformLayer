@@ -129,6 +129,8 @@ void audio_update()
     // TODO: TESTING ONLY
     // asio_start();
     // for each channel -> call channel.update()
+    // -> Does this make sense? Would this not happend per audio callback?
+    // => But this would mean more resource use there?
 }
 
 void audio_dispose()

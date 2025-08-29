@@ -1,11 +1,11 @@
 #include "internal.h"
 
-DivisionCounter* beat_find_division(BeatClock& clock, float divisionsPerBeat);
+DivisionCounter* beat_find_division(BeatCounter& clock, float divisionsPerBeat);
 
-void beat_init(BeatClock& clock,
+void beat_init(BeatCounter& clock,
                float bpm,
                int beatsPerMeasure,
                float* divisions,
                int divisionCount);
-void beat_start(BeatClock& clock);
-void beat_update(BeatClock& clock);
+void beat_start(BeatCounter& clock);
+void beat_update(BeatCounter& clock);
