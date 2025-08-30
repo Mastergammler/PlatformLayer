@@ -47,7 +47,7 @@ void collision_box_player(Player& player)
                  playerGridPosition.y,
                  playerWorldPosition.x,
                  playerWorldPosition.y);*/
-            audio_start_playback(Audio.fxpb);
+            // audio_start_playback(Audio.fxpb);
         }
     } // means WAS active till now
       // TODO: PROBLEM, 2 items back to back will fail ...

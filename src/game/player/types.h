@@ -6,6 +6,14 @@
 #include "../beat/types.h"
 #include "../collision/types.h"
 
+enum PlayerState
+{
+    IDLE,
+    WALKING,
+    JUMPING,
+    COLLIDING
+};
+
 struct Player
 {
     f2 screen_position;
@@ -14,7 +22,8 @@ struct Player
 
     /** = right */
     bool facing_forward;
-    bool is_walking;
+
+    PlayerState state;
 
     // TODO: do i need this? is this not to be done through subdivisions?
     // -> because it should be in sync as well
@@ -31,6 +40,13 @@ struct Player
 
     Collider collider;
 
+    SpriteSheet* jump_sprites;
+    DivisionCounter* jump_counter;
+
     // TODO: do i need the index?
     int walking_idx;
+
+    int jump_idx;
+    int jump_elapsed;
+    int jump_max;
 };

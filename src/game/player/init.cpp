@@ -9,6 +9,7 @@ void player_init(Player& player,
     player.idle_sprites = &shelf.PlayerIdle;
     player.walking_sprites = &shelf.PlayerWalking;
     player.hit_sprites = &shelf.PlayerHit;
+    player.jump_sprites = &shelf.PlayerJump;
 
     // we draw from upper left corner, so offset for x would be negative for
     v2 tileOffset = v2{-(WORLD_TILE_SIZE.x / 2), WORLD_TILE_SIZE.y};
@@ -23,10 +24,12 @@ void player_init(Player& player,
                                 (float)(gridSize.y - 2) * WORLD_TILE_SIZE.y};
 
     player.walking_idx = 5;
+    player.jump_max = 2;
 
     player.movement_speed = 100;
     player.idle_counter = beat_find_division(counter, 2.);
     player.walking_counter = beat_find_division(counter, 8.);
+    player.jump_counter = beat_find_division(counter, 2);
 
     player.collider = {};
 }

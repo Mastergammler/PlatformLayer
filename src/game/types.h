@@ -38,6 +38,7 @@ struct SpriteShelf
     SpriteSheet PlayerWalking = {};
     SpriteSheet PlayerIdle = {};
     SpriteSheet PlayerHit = {};
+    SpriteSheet PlayerJump = {};
     SpriteSheet FontSprites = {};
     SpriteSheet GroundSprites = {};
     BitmapFont Font = {};
@@ -48,7 +49,9 @@ struct AudioShelf
     Audio audio;
     Audio fx;
     Audio laserSound;
+    Audio fx_jump;
     Playback songPb = {&audio};
     Playback fxpb = {&fx};
     Playback laser = {&laserSound};
+    Playback pb_jump = {&fx_jump};
 };

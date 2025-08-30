@@ -51,6 +51,7 @@ void game_init()
     load_sheet(Sprites.PlayerWalking, "res/img/Anim.png", v2{32, 32});
     load_sheet(Sprites.PlayerIdle, "res/img/Idle.png", v2{32, 32});
     load_sheet(Sprites.PlayerHit, "res/img/Hit.png", v2{32, 32});
+    load_sheet(Sprites.PlayerJump, "res/img/Jump.png", v2{32, 32});
     load_sheet(Sprites.FontSprites, "res/img/Medodica_7x10.png", v2{7, 10});
     load_sheet(Sprites.GroundSprites, "res/img/tiles_16x16.png", v2{16, 16});
     Sprites.Font = BitmapFont{-48, -55, -61, &Sprites.FontSprites};
@@ -58,8 +59,11 @@ void game_init()
     audio_load_sound(Audio.audio, "res/audio/Test2_112BPM_16B.wav");
     audio_load_sound(Audio.fx, "res/audio/FxTest_16B.wav");
     audio_load_sound(Audio.laserSound, "res/audio/LaserFx_16B.wav");
+    audio_load_sound(Audio.fx_jump, "res/audio/fx_jump.wav");
     Audio.laser.volume = 2.5;
     Audio.songPb.loop = true;
+    Audio.pb_jump.volume = 1;
+    Audio.songPb.volume = 0.8;
 
     float bpm = 112;
     float divisions[] = {.5, 2, 8};

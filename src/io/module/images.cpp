@@ -84,6 +84,7 @@ void load_sheet(SpriteSheet& sheet, string imgPath, v2 tileSize, bool swapRB)
          sheet.tile_size.y);
 }
 
+// TODO: show error when loading failed!!!
 void load_sprite(PixelBuffer& buffer, string path, bool swapRB)
 {
     Clock timer = {};

@@ -4,6 +4,7 @@
 #include "collision.h"
 #include "draw.h"
 #include "player.h"
+#include "player/types.h"
 #include "world.h"
 
 void game_update()
@@ -17,19 +18,6 @@ void game_update()
     else if (GameInputs.NudgeRight.pressed)
     {
         SongClock.offset += NUDGE_STEPS;
-    }
-
-    if (GameInputs.Help.pressed)
-    {
-        audio_start_playback(Audio.fxpb);
-    }
-    else if (GameInputs.Action.is_down)
-    {
-    }
-    else if (GameInputs.Jump.pressed)
-    {
-        // audio_start_playback(fxpb);
-        audio_start_playback(Audio.laser);
     }
 
     // TODO: run idle animation first
@@ -47,7 +35,7 @@ void game_update()
     // start audio
     if (GameInputs.Right.pressed && !Started)
     {
-        Ninja.is_walking = true;
+        Ninja.state = WALKING;
         audio_start_playback(Audio.songPb);
         Started = true;
         logf("Player started music");

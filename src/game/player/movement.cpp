@@ -1,4 +1,5 @@
 #include "../internal.h"
+#include "types.h"
 
 void player_move(Player& player, bool forward)
 {
@@ -13,6 +14,6 @@ void player_move(Player& player, bool forward)
         player.screen_position.x -= distance;
     }
 
-    player.is_walking = true;
+    player.state = WALKING;
     player.facing_forward = forward;
 }
