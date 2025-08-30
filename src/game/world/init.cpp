@@ -10,6 +10,7 @@ void world_init(WorldGrid& grid, int count, int startIdx, int visible_count)
     memset(grid.tiles, 0, grid.tile_count * sizeof(WorldTile));
     grid.start_index = startIdx;
     grid.pixel_offset = v2{0, 0};
+    grid.tile_size = WORLD_TILE_SIZE;
 }
 
 void world_add_tile(WorldGrid grid, WorldTile& tile, int xPos)
@@ -17,6 +18,7 @@ void world_add_tile(WorldGrid grid, WorldTile& tile, int xPos)
     // TODO: use v2 and calculate position
     grid.tiles[xPos] = tile;
     grid.tiles[xPos].is_visible = true;
+    grid.tiles[xPos].word_position = v2{xPos, 0};
 }
 
 void world_init_tile(WorldTile& tile,

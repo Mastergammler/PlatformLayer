@@ -13,6 +13,18 @@ void player_update(Player& player)
                           player.idle_sprites->tile_count;
     }
 
-    player.current_sprite = player.is_walking ? &player.walking_sprites->tiles[player.walking_idx]
-                                              : &player.idle_sprites->tiles[player.idle_idx];
+    if (player.collider.collision_active)
+    {
+        // TODO: kinda bad solution should change this
+        //-> no guarantee that same sprite length!
+        player.current_sprite = &player.hit_sprites->tiles[player.idle_idx];
+    }
+    else if (player.is_walking)
+    {
+        player.current_sprite = &player.walking_sprites->tiles[player.walking_idx];
+    }
+    else
+    {
+        player.current_sprite = &player.idle_sprites->tiles[player.idle_idx];
+    }
 }

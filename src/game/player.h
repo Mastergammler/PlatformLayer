@@ -2,8 +2,7 @@
 
 void player_init(Player& player,
                  BeatCounter counter,
-                 SpriteSheet* idle,
-                 SpriteSheet* walking,
+                 SpriteShelf& shelf,
                  v2 gridSize);
 
 void player_update(Player& player);

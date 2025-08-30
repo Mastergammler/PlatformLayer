@@ -6,11 +6,11 @@ void player_move(Player& player, bool forward)
 
     if (forward)
     {
-        player.position.x += distance;
+        player.screen_position.x += distance;
     }
     else
     {
-        player.position.x -= distance;
+        player.screen_position.x -= distance;
     }
 
     player.is_walking = true;

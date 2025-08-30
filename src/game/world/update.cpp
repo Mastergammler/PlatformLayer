@@ -1,7 +1,19 @@
 #include "../internal.h"
 
-void world_update(WorldGrid grid)
+void world_update(WorldGrid& grid)
 {
+    if (MusicStarted)
+    {
+        if (BeatDivision->division_changed_this_frame)
+        {
+            if (World.start_index + World.visibile_tiles - 1 <
+                World.tile_count + 1)
+            {
+                World.start_index++;
+            }
+        }
+    }
+
     for (int i = 0; i < grid.visibile_tiles; i++)
     {
         int idx = i + grid.start_index;

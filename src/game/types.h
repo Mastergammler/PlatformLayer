@@ -1,6 +1,8 @@
 #pragma once
 
-#include "internal.h"
+#include "../audio/types.h"
+#include "../input/types.h"
+#include "../rendering/types.h"
 
 // TODO: NVIM - create a generator for this?
 struct GameInputState : InputState
@@ -25,4 +27,28 @@ struct GameInputState : InputState
     KeyInput& Right;
     KeyInput& NudgeLeft;
     KeyInput& NudgeRight;
+};
+
+struct SpriteShelf
+{
+    PixelBuffer Grass = {};
+    PixelBuffer Plate = {};
+    PixelBuffer Border = {};
+    SpriteSheet SheetTest = {};
+    SpriteSheet PlayerWalking = {};
+    SpriteSheet PlayerIdle = {};
+    SpriteSheet PlayerHit = {};
+    SpriteSheet FontSprites = {};
+    SpriteSheet GroundSprites = {};
+    BitmapFont Font = {};
+};
+
+struct AudioShelf
+{
+    Audio audio;
+    Audio fx;
+    Audio laserSound;
+    Playback songPb = {&audio};
+    Playback fxpb = {&fx};
+    Playback laser = {&laserSound};
 };

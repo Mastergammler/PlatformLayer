@@ -7,6 +7,8 @@
 struct WorldTile
 {
     bool is_visible;
+    /** world position in tiles */
+    v2 word_position;
 
     SpriteSheet* sheet;
     int sheet_min_index;
@@ -35,4 +37,10 @@ struct WorldGrid
      * always one extra row
      * */
     v2 pixel_offset;
+
+    /**
+     * Size of the world tiles
+     * The units that the world uses for them
+     */
+    v2 tile_size;
 };
