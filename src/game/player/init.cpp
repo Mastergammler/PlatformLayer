@@ -24,7 +24,7 @@ void player_init(Player& player,
                                 (float)(gridSize.y - 2) * WORLD_TILE_SIZE.y};
 
     player.walking_idx = 5;
-    player.jump_max = 2;
+    player.jump_max = 4;
 
     player.movement_speed = 100;
     player.idle_counter = beat_find_division(counter, 2.);

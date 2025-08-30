@@ -51,7 +51,7 @@ void game_init()
     load_sheet(Sprites.PlayerWalking, "res/img/Anim.png", v2{32, 32});
     load_sheet(Sprites.PlayerIdle, "res/img/Idle.png", v2{32, 32});
     load_sheet(Sprites.PlayerHit, "res/img/Hit.png", v2{32, 32});
-    load_sheet(Sprites.PlayerJump, "res/img/Jump.png", v2{32, 32});
+    load_sheet(Sprites.PlayerJump, "res/img/NinjaJump.png", v2{32, 32});
     load_sheet(Sprites.FontSprites, "res/img/Medodica_7x10.png", v2{7, 10});
     load_sheet(Sprites.GroundSprites, "res/img/tiles_16x16.png", v2{16, 16});
     Sprites.Font = BitmapFont{-48, -55, -61, &Sprites.FontSprites};

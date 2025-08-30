@@ -31,22 +31,22 @@ void player_update(Player& player)
         }
     }
 
-    // JUMP ENTER
-    if (GameInputs.Jump.pressed && player.state != JUMPING)
+    // TODO: i need to move the player instead, else this is akward
+    if (player.collider.collision_enter_frame && player.state == WALKING)
     {
+        player.state = COLLIDING;
+        audio_start_playback(Audio.fxpb);
+    }
+    else if (GameInputs.Jump.pressed && player.state == WALKING)
+    {
+        // JUMP ENTER
         player.state = JUMPING;
         player.jump_idx = 0;
         player.jump_elapsed = 0;
         player.screen_position.y -= WORLD_TILE_SIZE.y;
         audio_start_playback(Audio.pb_jump);
     }
-    // TODO: i need to move the player instead, else this is akward
-    else if (player.collider.collision_enter_frame && player.state != JUMPING)
-    {
-        player.state = COLLIDING;
-        audio_start_playback(Audio.fxpb);
-    }
-    else if (player.collider.collision_exit_frame)
+    else if (player.collider.collision_exit_frame && player.state == COLLIDING)
     {
         player.state = WALKING;
     }

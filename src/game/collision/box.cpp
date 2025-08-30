@@ -28,9 +28,11 @@ void collision_box_player(Player& player)
         playerWorldPosition.x < World.start_index + World.visibile_tiles)*/
 
     // TODO: actual type check here
+    // - we only start collision if the player is walking, not before
     if (World.tiles[playerWorldPosition.x].is_visible)
     {
-        if (!player.collider.collision_active)
+        // ON COLLISION ENTER
+        if (!player.collider.collision_active && player.state == WALKING)
         {
             player.collider.collision_active = true;
             player.collider.collision_enter_frame = true;
@@ -38,16 +40,6 @@ void collision_box_player(Player& player)
         else
         {
             player.collider.collision_enter_frame = false;
-        }
-
-        if (player.collider.collision_enter_frame)
-        {
-            /*logf("Player world positon: %i,%i grid: %i,%i",
-                 playerGridPosition.x,
-                 playerGridPosition.y,
-                 playerWorldPosition.x,
-                 playerWorldPosition.y);*/
-            // audio_start_playback(Audio.fxpb);
         }
     } // means WAS active till now
       // TODO: PROBLEM, 2 items back to back will fail ...

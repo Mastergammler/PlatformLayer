@@ -23,10 +23,10 @@ void game_update()
     // TODO: run idle animation first
     //-> level starts as soon as the player presses left or right
     beat_update(SongClock);
-    player_update(Ninja);
     world_update(World);
 
     collision_box_player(Ninja);
+    player_update(Ninja);
 
     draw_world();
     draw_player();
