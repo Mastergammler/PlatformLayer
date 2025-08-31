@@ -1,7 +1,10 @@
 #include "../internal.h"
+#include "types.h"
 
 #define DEFAULT_DIVISION_COUNT 2
 static float DEFAULT_DIVISIONS[] = {BEAT_DIVISIONS, MEASURE_DIVISIONS};
+
+BeatCounter SongClock;
 
 void beat_init(BeatCounter& clock,
                float bpm,
@@ -11,8 +14,8 @@ void beat_init(BeatCounter& clock,
 {
     clock.bpm = bpm;
     clock.beats_per_measure = beatsPerMeasure;
-    clock.current_beat = 1;
-    clock.current_measure = 1;
+    // clock.current_beat = 1;
+    // clock.current_measure = 1;
     clock.time_per_beat = 60. / bpm;
     clock.division_count = divisionCount + DEFAULT_DIVISION_COUNT;
     clock.divisions = new DivisionCounter[clock.division_count]();
@@ -58,9 +61,25 @@ void beat_start(BeatCounter& clock)
     }
 }
 
+void beat_reset(BeatCounter& clock)
+{
+    // clock.current_beat = 1;
+    // clock.current_measure = 1;
+
+    // init first beat changes
+    for (int i = 0; i < clock.division_count; i++)
+    {
+        clock.divisions[i].current_division = 1;
+        clock.divisions[i].division_changed_this_frame = true;
+    }
+
+    timer_start(clock.timer);
+    clock.elapsed = 0;
+}
+
 void beat_update(BeatCounter& clock)
 {
-    if (!MusicStarted) return;
+    // if (!MusicStarted) return;
 
     timer_update(clock.timer);
     clock.elapsed += clock.timer.sim_time;
@@ -72,10 +91,8 @@ void beat_update(BeatCounter& clock)
     {
         DivisionCounter* div = &clock.divisions[i];
         float divDec = (clock.elapsed + clock.offset) / div->time_per_division;
-
-        // FIXME: there seems to be a off-by-one for the masures, but the rest
-        // seems fine
-        if (divDec >= div->current_division + 1)
+        // NOTE: divDec is 0 based, so we don't need the +1 here!
+        if (divDec >= div->current_division)
         {
             div->current_division++;
             div->division_changed_this_frame = true;

@@ -12,7 +12,7 @@ struct GameInputState : InputState
           Jump(key_states[2]), Help(key_states[3]), ReloadConfig(key_states[4]),
           Up(key_states[5]), Down(key_states[6]), Left(key_states[7]),
           Right(key_states[8]), NudgeLeft(key_states[9]),
-          NudgeRight(key_states[10])
+          NudgeRight(key_states[10]), Restart(key_states[11])
     {
     }
 
@@ -27,6 +27,7 @@ struct GameInputState : InputState
     KeyInput& Right;
     KeyInput& NudgeLeft;
     KeyInput& NudgeRight;
+    KeyInput& Restart;
 };
 
 struct SpriteShelf
@@ -50,8 +51,8 @@ struct AudioShelf
     Audio fx;
     Audio laserSound;
     Audio fx_jump;
-    Playback songPb = {&audio};
-    Playback fxpb = {&fx};
-    Playback laser = {&laserSound};
-    Playback pb_jump = {&fx_jump};
+    Playback songPb = {&audio, 1};
+    Playback fxpb = {&fx, 2};
+    Playback laser = {&laserSound, 3};
+    Playback pb_jump = {&fx_jump, 4};
 };

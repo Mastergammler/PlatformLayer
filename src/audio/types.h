@@ -23,6 +23,7 @@ struct Audio
 struct Playback
 {
     Audio* data;
+    int playback_id;
     bool is_playing;
     bool loop;
     int cursor_position;

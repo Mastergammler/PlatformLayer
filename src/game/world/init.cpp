@@ -2,6 +2,8 @@
 #include "../internal.h"
 #include "types.h"
 
+WorldGrid World;
+
 void world_init(WorldGrid& grid, int count, int startIdx, int visible_count)
 {
     grid.tile_count = count;

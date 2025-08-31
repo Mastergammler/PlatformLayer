@@ -32,27 +32,38 @@ void game_update()
     draw_player();
     draw_ui();
 
-    // start audio
-    if (GameInputs.Right.pressed && !Started)
+    // start/reset audio
+    if (GameInputs.Restart.pressed)
+    {
+        World.start_index = 0;
+        audio_stop_playback(Audio.songPb);
+        player_reset(Ninja, GridSize16x16);
+        beat_reset(SongClock);
+        audio_start_playback(Audio.songPb);
+        GroundIdx = (++GroundIdx % 2) + GroundOffset;
+        MusicStarted = true;
+        logf("Level was reset");
+    }
+
+    /*if (GameInputs.Right.pressed && !Started)
     {
         Ninja.state = WALKING;
         audio_start_playback(Audio.songPb);
         Started = true;
-        logf("Player started music");
         beat_start(SongClock);
         GroundIdx = (++GroundIdx % 2) + GroundOffset;
         MusicStarted = true;
-    }
+    }*/
 
     // sync audio
-    if (!MusicStarted && AudioEvent.load() == AUDIO_START)
+    /*if (!MusicStarted && AudioEvent.load() == AUDIO_START)
     {
         audio_start_playback(Audio.songPb);
         logf("Music start signal received");
         beat_start(SongClock);
         GroundIdx = (++GroundIdx % 2) + GroundOffset;
         MusicStarted = true;
-    }
+    }*/
     // hot reload functionality
     if (GameInputs.ReloadConfig.released)
     {

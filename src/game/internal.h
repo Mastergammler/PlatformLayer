@@ -18,10 +18,11 @@
 #include "world/types.h"
 
 #define NAMEOF(x) #x
-#define KEYBOARD_INPUTS 11
+#define KEYBOARD_INPUTS 12
 #define NUDGE_STEPS 0.01
 #define WIN_KEYCODE_FILE "config/windows.conf"
 #define KEYMAPPING_FILE "config/keyboard.conf"
+#define LEVEL_FILE "res/level/jam.lvl"
 
 // TODO: move to a parsing module
 inline static string TrimToVariableName(string s)
@@ -32,16 +33,17 @@ inline static string TrimToVariableName(string s)
 
 extern DrawBuffer Buffer;
 extern Clock GameClock;
+extern BeatCounter SongClock;
 
 static GameInputState GameInputs = {new KeyInput[KEYBOARD_INPUTS](),
                                     KEYBOARD_INPUTS};
 
 // Global state
 static DrawBuffer BgCache;
-static BeatCounter SongClock;
+// static BeatCounter SongClock;
 static Player Ninja;
 // world stuff
-static WorldGrid World;
+extern WorldGrid World;
 static WorldTile BoxTile;
 
 static SpriteShelf Sprites;
@@ -59,5 +61,6 @@ static int GroundOffset = 8;
 static v2 GridSize16x16 = {};
 static bool Started = false;
 static bool MusicStarted = false;
+static bool BgChanged = true;
 
 static const v2 WORLD_TILE_SIZE = v2{16, 16};

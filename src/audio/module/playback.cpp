@@ -22,13 +22,20 @@ void audio_start_playback(Playback pb)
          pb.data->file.c_str());
 }
 
-// TODO: implement properly
 void audio_stop_playback(Playback pb)
 {
-    ma_result result;
-    result = ma_device_stop(&Device);
-    if (result != MA_SUCCESS)
+    for (int i = 0; i < Playbacks.max_size; i++)
     {
-        logf("[Audio] Device could not be stopped for playback: %i", result);
+        if (Playbacks.data[i].is_playing &&
+            Playbacks.data[i].playback_id == pb.playback_id)
+        {
+            Playbacks.data[i].is_playing = false;
+            return;
+        }
     }
+
+    logf("Requested to stop playing '%s' but no ACTIVE playback with id %i was "
+         "found",
+         pb.data->file.c_str(),
+         pb.playback_id);
 }

@@ -25,8 +25,8 @@ struct BeatCounter
     float offset;
     /** unit: s */
     float time_per_beat;
-    u32 current_beat;
-    u32 current_measure;
+    // u32 current_beat;
+    // u32 current_measure;
     int beats_per_measure;
 
     int division_count;

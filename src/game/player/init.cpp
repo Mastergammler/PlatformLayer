@@ -32,4 +32,15 @@ void player_init(Player& player,
     player.jump_counter = beat_find_division(counter, 2);
 
     player.collider = {};
+    player.state = IDLE;
+}
+
+void player_reset(Player& player, v2 gridSize)
+{
+    Ninja.state = WALKING;
+    player.screen_position = f2{(float)gridSize.x / 2 * WORLD_TILE_SIZE.x,
+                                (float)(gridSize.y - 2) * WORLD_TILE_SIZE.y};
+
+    player.walking_idx = 5;
+    player.collider = {};
 }

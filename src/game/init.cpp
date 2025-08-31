@@ -3,6 +3,7 @@
 #include "beat.h"
 #include "player.h"
 #include "world.h"
+#include <algorithm>
 
 void game_init()
 {
@@ -32,6 +33,8 @@ void game_init()
                                             NAMEOF(GameInputs.NudgeLeft));
     GameInputs.NudgeRight.identifier = TrimToVariableName(
                                             NAMEOF(GameInputs.NudgeRight));
+    GameInputs.Restart.identifier = TrimToVariableName(
+                                            NAMEOF(GameInputs.Restart));
 
     GridSize16x16 = v2{Buffer.width / WORLD_TILE_SIZE.x,
                        Buffer.height / WORLD_TILE_SIZE.y};
@@ -56,7 +59,7 @@ void game_init()
     load_sheet(Sprites.GroundSprites, "res/img/tiles_16x16.png", v2{16, 16});
     Sprites.Font = BitmapFont{-48, -55, -61, &Sprites.FontSprites};
 
-    audio_load_sound(Audio.audio, "res/audio/Test2_112BPM_16B.wav");
+    audio_load_sound(Audio.audio, "res/audio/BeatNinjaJamBeat_16B_441.wav");
     audio_load_sound(Audio.fx, "res/audio/FxTest_16B.wav");
     audio_load_sound(Audio.laserSound, "res/audio/LaserFx_16B.wav");
     audio_load_sound(Audio.fx_jump, "res/audio/fx_jump.wav");
@@ -79,27 +82,26 @@ void game_init()
          (int)Ninja.screen_position.y / WORLD_TILE_SIZE.y);
 
     // world init testing
-    world_init(World, 128, 0, GridSize16x16.x + 2);
+    vector<int> boxes;
+    parse_number_file(boxes, LEVEL_FILE);
+    int max = playerPos.x;
+    if (!boxes.empty()) max += *max_element(boxes.begin(), boxes.end());
+    world_init(World, max, 0, GridSize16x16.x + 2);
     world_init_tile(BoxTile, SongClock, &Sprites.GroundSprites, 10, 2, 0.5);
-    world_add_tile(World, BoxTile, 14);
-    world_add_tile(World, BoxTile, 18);
-    world_add_tile(World, BoxTile, 22);
-    world_add_tile(World, BoxTile, 28);
-    world_add_tile(World, BoxTile, 40);
-    world_add_tile(World, BoxTile, 53);
-    world_add_tile(World, BoxTile, 88);
-    world_add_tile(World, BoxTile, 89);
-    world_add_tile(World, BoxTile, 100);
-    world_add_tile(World, BoxTile, 102);
-    world_add_tile(World, BoxTile, 110);
-    world_add_tile(World, BoxTile, 125);
-    world_add_tile(World, BoxTile, 126);
-    world_add_tile(World, BoxTile, 127);
+    for (int i = 0; i < boxes.size(); i++)
+    {
+        // converting beat value to index
+        // because starting beat is 1
+        world_add_tile(World, BoxTile, boxes[i] - 1 + playerPos.x);
+    }
 
     GroundDivision = beat_find_division(SongClock, 1);
     BgDivision = beat_find_division(SongClock, 0.5);
     BeatDivision = beat_find_division(SongClock, 1);
     MeasureDivision = beat_find_division(SongClock, 0.25);
+
+    GroundIdx = GroundOffset;
+    beat_start(SongClock);
 
     float elapsed = time_since_start(timer);
     logf("| %.1f ms | Game initialization", elapsed);

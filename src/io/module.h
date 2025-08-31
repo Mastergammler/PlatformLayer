@@ -15,6 +15,7 @@ void parse_kvp_file(std::unordered_map<std::string, std::string>* map,
 void parse_kvp_file(std::unordered_map<std::string, uint32_t>* map,
                     const std::string filePath);
 
+void parse_number_file(std::vector<int>& values, const std::string filePath);
 /*
  *  RB swapping is required for display via win32 GDI
     // TODO: check how this is done on Linux / MacOs

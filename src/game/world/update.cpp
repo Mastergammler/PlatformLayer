@@ -6,10 +6,10 @@ void world_update(WorldGrid& grid)
     {
         if (BeatDivision->division_changed_this_frame)
         {
-            if (World.start_index + World.visibile_tiles - 1 <
-                World.tile_count + 1)
+            if (grid.start_index + grid.visibile_tiles - 1 <
+                grid.tile_count + 1)
             {
-                World.start_index++;
+                grid.start_index++;
             }
         }
     }
