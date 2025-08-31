@@ -22,11 +22,14 @@ void game_update()
 
     // TODO: run idle animation first
     //-> level starts as soon as the player presses left or right
-    beat_update(SongClock);
-    world_update(World);
+    if (!Stop)
+    {
+        beat_update(SongClock);
+        world_update(World);
 
-    collision_box_player(Ninja);
-    player_update(Ninja);
+        collision_box_player(Ninja);
+        player_update(Ninja);
+    }
 
     draw_world();
     draw_player();
@@ -42,6 +45,7 @@ void game_update()
         audio_start_playback(Audio.songPb);
         GroundIdx = (++GroundIdx % 2) + GroundOffset;
         MusicStarted = true;
+        Stop = false;
         logf("Level was reset");
     }
 

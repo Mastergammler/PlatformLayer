@@ -51,8 +51,10 @@ struct AudioShelf
     Audio fx;
     Audio laserSound;
     Audio fx_jump;
+    Audio fx_land;
     Playback songPb = {&audio, 1};
     Playback fxpb = {&fx, 2};
     Playback laser = {&laserSound, 3};
     Playback pb_jump = {&fx_jump, 4};
+    Playback pb_land = {&fx_land, 5};
 };

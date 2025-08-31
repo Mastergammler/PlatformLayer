@@ -4,6 +4,9 @@
 ma_context Context;
 ma_device_config DeviceConfig;
 ma_device Device;
+ma_resource_manager_config RmConfig;
+ma_resource_manager Rm;
+int SampleRate;
 
 // 0 = choose default
 #define SAMPLE_RATE 44100;
@@ -63,7 +66,8 @@ void init_via_miniaudio()
     // TODO: needs to be set before the device is initialized
     DeviceConfig.playback.format = ma_format_s16;
     DeviceConfig.playback.channels = 0;
-    DeviceConfig.sampleRate = SAMPLE_RATE;
+    // TODO: set sample rate?!
+    DeviceConfig.sampleRate = 0;
     DeviceConfig.dataCallback = data_callback;
 
     // For simple tasks even 32 is feasable
@@ -93,7 +97,8 @@ void init_via_miniaudio()
 
     float initTime = time_since_start(timer);
 
-    logf("[miniaudio] | %.1f ms | DefaultDevice '%s' with %u channels at %u hz "
+    logf("[miniaudio] | %.1f ms | DefaultDevice '%s' with %u channels at "
+         "%u hz "
          "and "
          "buffer size %i was initialized",
          initTime,
@@ -110,6 +115,7 @@ void audio_init()
 
     LogAsioDrivers();
     int succes = asio_init();
+    int sampleRate = 0;
     if (succes != 0)
     {
         init_via_miniaudio();
@@ -118,6 +124,18 @@ void audio_init()
     else
     {
         asio_start();
+        SampleRate = AsioSampleRate;
+    }
+
+    RmConfig = ma_resource_manager_config_init();
+    RmConfig.decodedChannels = 2;
+    RmConfig.decodedFormat = ma_format_s16; // PCM16
+    RmConfig.decodedSampleRate = SampleRate;
+
+    ma_result result = ma_resource_manager_init(&RmConfig, &Rm);
+    if (result != MA_SUCCESS)
+    {
+        logf("Unable to initialize resource manager: %i", result);
     }
 
     float initTime = time_since_start(timer);

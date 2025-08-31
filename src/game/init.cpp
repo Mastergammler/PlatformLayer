@@ -63,9 +63,11 @@ void game_init()
     audio_load_sound(Audio.fx, "res/audio/FxTest_16B.wav");
     audio_load_sound(Audio.laserSound, "res/audio/LaserFx_16B.wav");
     audio_load_sound(Audio.fx_jump, "res/audio/fx_jump.wav");
+    audio_load_sound(Audio.fx_land, "res/audio/fx_land.wav");
     Audio.laser.volume = 2.5;
     Audio.songPb.loop = true;
     Audio.pb_jump.volume = 1;
+    Audio.pb_land.volume = 1.5;
     Audio.songPb.volume = 0.8;
 
     float bpm = 112;

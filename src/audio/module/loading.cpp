@@ -33,10 +33,25 @@ void audio_load_sound(Audio& sound, std::string file)
     // TODO: resampling is not done automatically
     //  -> need to use the resource manager to do this instead ...
 
+    ma_resource_manager_data_source dataSource;
+    result = ma_resource_manager_data_source_init(
+                                            &Rm,
+                                            file.c_str(),
+                                            MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_DECODE, // No STREAM flag
+                                            NULL, // Async notification (not
+                                            &dataSource);
+    if (result != MA_SUCCESS)
+    {
+        logf("[Audio] Unable to init datasource for file '%s': %i",
+             file.c_str(),
+             result);
+        return;
+    }
+
     // 1 frame = 1 sample per channel
     // this returns the resampled length
     ma_uint64 sampleCount;
-    ma_decoder_get_length_in_pcm_frames(&decoder, &sampleCount);
+    ma_data_source_get_length_in_pcm_frames(&dataSource, &sampleCount);
 
     sound.channels = decoder.outputChannels;
     sound.total_samples = sampleCount * sound.channels;
@@ -50,21 +65,10 @@ void audio_load_sound(Audio& sound, std::string file)
     ma_uint64 framesRead;
     // reads all channels simultaneously
     // 1 frame = 1 sample per channel
-    ma_decoder_read_pcm_frames(&decoder,
-                               sound.pcm_data,
-                               sound.total_samples,
-                               &framesRead);
-
-    ma_audio_buffer_config bufferConfig = ma_audio_buffer_config_init(
-                                            decoder.outputFormat,
-                                            decoder.outputChannels,
-                                            framesRead,
-                                            sound.pcm_data,
-                                            NULL);
-
-    // TODO: signify buffer and sound loading differently?
-    // ma_audio_buffer_init(&bufferConfig, &Buffers[BufferIndex++]);
-    ma_decoder_uninit(&decoder);
+    ma_data_source_read_pcm_frames(&dataSource,
+                                   sound.pcm_data,
+                                   sound.total_samples,
+                                   &framesRead);
     sound.loaded = true;
 
     logf("| %.1f ms | Loading audio '%s' %i channels at %i Hz (%i frames - "

@@ -7,6 +7,7 @@ ASIOBufferInfo* ChannelBuffers;
 long OutputChannels;
 long InputChannels;
 int BufferSize;
+double AsioSampleRate;
 
 int asio_init()
 {
@@ -90,6 +91,8 @@ int asio_init()
              driverInfo.name);
     }
 
+    AsioSampleRate = (int)sampleRate;
+
     /*err =
 ASIOSetSampleRate(sampleRate); if
 (err == ASE_OK)
@@ -130,7 +133,12 @@ sampleRate);
         ChannelBuffers[InputChannels + i].buffers[1] = nullptr;
     }
 
-    assert(OutputChannels > 1);
+    if (OutputChannels < 2)
+    {
+        logf("[ASIO] Fewer than 2 output channels not supported!");
+        // assert(OutputChannels > 1);
+        return -1;
+    }
 
     err = ASIOCreateBuffers(ChannelBuffers, totalChannels, BufferSize, &asioCb);
     if (err != ASE_OK)

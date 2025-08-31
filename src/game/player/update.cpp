@@ -22,6 +22,7 @@ void player_update(Player& player)
         {
             player.state = WALKING;
             player.screen_position.y += WORLD_TILE_SIZE.y;
+            audio_start_playback(Audio.pb_land);
         }
         else
         {
@@ -36,6 +37,9 @@ void player_update(Player& player)
     {
         player.state = COLLIDING;
         audio_start_playback(Audio.fxpb);
+        Stop = true;
+        MusicStarted = false;
+        audio_stop_playback(Audio.songPb);
     }
     else if (GameInputs.Jump.pressed && player.state == WALKING)
     {

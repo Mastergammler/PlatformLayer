@@ -15,8 +15,11 @@ extern ma_device_config DeviceConfig;
 extern ma_device Device;
 extern ma_context Context;
 extern ma_audio_buffer* Buffers;
+extern ma_resource_manager_config RmConfig;
+extern ma_resource_manager Rm;
 extern int BufferCount;
 extern int BufferIndex;
+extern int SampleRate;
 // extern PlaybackPool Playbacks;
 
 void data_callback(ma_device* device,

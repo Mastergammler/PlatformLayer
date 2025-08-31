@@ -7,6 +7,9 @@
 // -> during loading ...
 
 #define MASTER_LEVEL 0.35
+// TODO: We're assuming only 2 channels to be output at the same time
+//  -> if the user has more, we ignore the others and only take the first two
+#define OUTPUT_CHANNELS 2
 
 float convert_PCM16_to_float(u16 sample)
 {
@@ -29,7 +32,7 @@ void bufferSwitch(long index, ASIOBool processNow)
     // zero out buffer, before new mixing
     // -> can be optimized?
     u16* out = MixBuffer;
-    for (int i = 0; i < BufferSize * OutputChannels; i++)
+    for (int i = 0; i < BufferSize * OUTPUT_CHANNELS; i++)
     {
         out[i] = 0;
     }
@@ -147,7 +150,7 @@ void bufferSwitch(long index, ASIOBool processNow)
         }
     }
 
-    for (int i = 0; i < OutputChannels; i++)
+    for (int i = 0; i < OUTPUT_CHANNELS; i++)
     {
         // logf("Writing output channel %i", i);
         float* curOut = (float*)ChannelBuffers[i + InputChannels]
@@ -156,8 +159,8 @@ void bufferSwitch(long index, ASIOBool processNow)
         // input is interleaved 0 1 2 0 1 2 0 1 2 eg
         // -> we need to convert it for each buffer
         long outS = 0;
-        for (long interS = i; interS < BufferSize * OutputChannels;
-             interS += OutputChannels)
+        for (long interS = i; interS < BufferSize * OUTPUT_CHANNELS;
+             interS += OUTPUT_CHANNELS)
         {
             float outputSample = convert_PCM16_to_float(MixBuffer[interS]);
             curOut[outS++] = MASTER_LEVEL * outputSample;
