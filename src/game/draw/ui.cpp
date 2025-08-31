@@ -7,7 +7,7 @@ void draw_ui()
                         format("Offset: %.f ms", SongClock.offset * 1000),
                         v2{8, 8},
                         true);
-    if (MusicStarted)
+    if (MusicStarted && !PlayerWon)
     {
         rendering_draw_text(Buffer,
                             Sprites.Font,
@@ -19,9 +19,18 @@ void draw_ui()
                             false);
     }
 
+    string text;
+    if (PlayerWon)
+    {
+        text = "Congratiulations  here is your Biscuit";
+    }
+    else
+    {
+        text = "R  Start Reset    Space  Jump    Esc  quit";
+    }
     rendering_draw_text(Buffer,
                         Sprites.Font,
-                        "R  Start Reset    Space  Jump    Esc  quit",
+                        text,
                         v2{8, Buffer.height - 16},
                         true);
 }

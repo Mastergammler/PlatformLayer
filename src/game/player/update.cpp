@@ -14,45 +14,53 @@ void player_update(Player& player)
                           player.idle_sprites->tile_count;
     }
 
-    if (player.jump_counter->division_changed_this_frame &&
-        player.state == JUMPING)
+    if (!PlayerWon || player.state == JUMPING)
     {
-        // JUMP EXIT
-        if (player.jump_elapsed >= player.jump_max)
+        if (player.jump_counter->division_changed_this_frame &&
+            player.state == JUMPING)
+        {
+            // JUMP EXIT
+            if (player.jump_elapsed >= player.jump_max)
+            {
+                player.state = WALKING;
+                player.screen_position.y += WORLD_TILE_SIZE.y;
+                audio_start_playback(Audio.land);
+            }
+            else
+            {
+                player.jump_elapsed++;
+                player.jump_idx = player.jump_counter->current_division %
+                                  player.jump_sprites->tile_count;
+            }
+        }
+
+        // TODO: i need to move the player instead, else this is akward
+        if (player.collider.collision_enter_frame && player.state == WALKING)
+        {
+            player.state = COLLIDING;
+            audio_start_playback(Audio.hit);
+            Stop = true;
+            MusicStarted = false;
+            audio_stop_playback(Audio.song);
+        }
+        else if (GameInputs.Jump.pressed && player.state == WALKING)
+        {
+            // JUMP ENTER
+            player.state = JUMPING;
+            player.jump_idx = 0;
+            player.jump_elapsed = 0;
+            player.screen_position.y -= WORLD_TILE_SIZE.y;
+            audio_start_playback(Audio.jump);
+        }
+        else if (player.collider.collision_exit_frame &&
+                 player.state == COLLIDING)
         {
             player.state = WALKING;
-            player.screen_position.y += WORLD_TILE_SIZE.y;
-            audio_start_playback(Audio.pb_land);
-        }
-        else
-        {
-            player.jump_elapsed++;
-            player.jump_idx = player.jump_counter->current_division %
-                              player.jump_sprites->tile_count;
         }
     }
-
-    // TODO: i need to move the player instead, else this is akward
-    if (player.collider.collision_enter_frame && player.state == WALKING)
+    else
     {
-        player.state = COLLIDING;
-        audio_start_playback(Audio.fxpb);
-        Stop = true;
-        MusicStarted = false;
-        audio_stop_playback(Audio.songPb);
-    }
-    else if (GameInputs.Jump.pressed && player.state == WALKING)
-    {
-        // JUMP ENTER
-        player.state = JUMPING;
-        player.jump_idx = 0;
-        player.jump_elapsed = 0;
-        player.screen_position.y -= WORLD_TILE_SIZE.y;
-        audio_start_playback(Audio.pb_jump);
-    }
-    else if (player.collider.collision_exit_frame && player.state == COLLIDING)
-    {
-        player.state = WALKING;
+        player.state = IDLE;
     }
 
     switch (player.state)

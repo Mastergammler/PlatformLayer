@@ -7,5 +7,8 @@ release
 log.txt
 logs
 res/**
+!res/config
+!res/level
+wip
 
 compile_commands.json

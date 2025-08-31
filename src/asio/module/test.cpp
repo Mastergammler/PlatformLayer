@@ -64,6 +64,7 @@ void LogAsioDrivers()
         string registryStr = string(registry, registry + wcslen(registry));
         logf("[ASIO] Found no driver entries under registry entry HKLM '%s'",
              registryStr.c_str());
+        return;
     }
 
     wstring driverKeyPath = L"SOFTWARE\\ASIO\\" + drivers[0];

@@ -3,7 +3,6 @@
 #include "beat.h"
 #include "player.h"
 #include "world.h"
-#include <algorithm>
 
 void game_init()
 {
@@ -41,34 +40,22 @@ void game_init()
 
     input_init_keyboard(&GameInputs, KEYMAPPING_FILE, WIN_KEYCODE_FILE);
 
-    load_sprite(Sprites.Grass, "res/img/tile-grass.png");
-    load_sprite(Sprites.Plate, "res/img/tile-plate.bmp");
-    load_sprite(Sprites.Border, "res/img/tile-border.png");
-    load_sheet(Sprites.SheetTest, "res/img/s64x64-test.png", v2{32, 32});
-    // i want order 0-2-3-1
-    PixelBuffer swap = Sprites.SheetTest.tiles[1];
-    Sprites.SheetTest.tiles[1] = Sprites.SheetTest.tiles[2];
-    Sprites.SheetTest.tiles[2] = Sprites.SheetTest.tiles[3];
-    Sprites.SheetTest.tiles[3] = swap;
-
-    load_sheet(Sprites.PlayerWalking, "res/img/Anim.png", v2{32, 32});
+    load_sheet(Sprites.PlayerWalking, "res/img/Walk.png", v2{32, 32});
     load_sheet(Sprites.PlayerIdle, "res/img/Idle.png", v2{32, 32});
     load_sheet(Sprites.PlayerHit, "res/img/Hit.png", v2{32, 32});
     load_sheet(Sprites.PlayerJump, "res/img/NinjaJump.png", v2{32, 32});
     load_sheet(Sprites.FontSprites, "res/img/Medodica_7x10.png", v2{7, 10});
-    load_sheet(Sprites.GroundSprites, "res/img/tiles_16x16.png", v2{16, 16});
+    load_sheet(Sprites.GroundSprites, "res/img/GroundTiles_16x16.png", v2{16, 16});
     Sprites.Font = BitmapFont{-48, -55, -61, &Sprites.FontSprites};
 
-    audio_load_sound(Audio.audio, "res/audio/BeatNinjaJamBeat_16B_441.wav");
-    audio_load_sound(Audio.fx, "res/audio/FxTest_16B.wav");
-    audio_load_sound(Audio.laserSound, "res/audio/LaserFx_16B.wav");
-    audio_load_sound(Audio.fx_jump, "res/audio/fx_jump.wav");
-    audio_load_sound(Audio.fx_land, "res/audio/fx_land.wav");
-    Audio.laser.volume = 2.5;
-    Audio.songPb.loop = true;
-    Audio.pb_jump.volume = 1;
-    Audio.pb_land.volume = 1.5;
-    Audio.songPb.volume = 0.8;
+    audio_load_sound(Audio.pcm_music, "res/audio/BeatNinjaJamBeat_16B_441.wav");
+    audio_load_sound(Audio.pcm_hit, "res/audio/fx_hit.wav");
+    audio_load_sound(Audio.pcm_jump, "res/audio/fx_jump.wav");
+    audio_load_sound(Audio.pcm_land, "res/audio/fx_land.wav");
+    Audio.song.loop = true;
+    Audio.jump.volume = 1;
+    Audio.land.volume = 1.5;
+    Audio.song.volume = 0.8;
 
     float bpm = 112;
     float divisions[] = {.5, 2, 8};
@@ -86,7 +73,7 @@ void game_init()
     // world init testing
     vector<int> boxes;
     parse_number_file(boxes, LEVEL_FILE);
-    int max = playerPos.x;
+    int max = playerPos.x + 1;
     if (!boxes.empty()) max += *max_element(boxes.begin(), boxes.end());
     world_init(World, max, 0, GridSize16x16.x + 2);
     world_init_tile(BoxTile, SongClock, &Sprites.GroundSprites, 10, 2, 0.5);

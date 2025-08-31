@@ -154,7 +154,13 @@ sampleRate);
         err = ASIOGetChannelInfo(&info);
         if (err == ASE_OK)
         {
-            logf("[ASIO] Device bit depthts : %d ", info.type);
+            logf("[ASIO] Device bit deptht : %d ", info.type);
+            if (info.type != 19 && info.type != 20)
+            {
+                logf("[ASIO] Unsupported bit depth, aborting initalization!");
+                asio_dispose();
+                return -1;
+            }
         }
         else
         {

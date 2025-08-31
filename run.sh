@@ -6,6 +6,7 @@ EXEC_NAME=platform-demo.exe
 export WINEDEBUG=+asio
 #,+loaddll,+dll,+module
 export WINEPREFIX=~/.gamedev
+#export WINEPREFIX=~/.gd-noasio
 export WINEASIO_NUMBER_INPUTS=0
 export WINEASIO_NUMBER_OUTPUTS=4
 

@@ -1,12 +1,12 @@
 #!/bin/bash
 
 #TODO: proper version management
-VERSION="0.0.0"
+VERSION="0.1.1"
 OUTPUT_DIR="release"
 #relative to output dir
 ZIP_DIR="../publish"
-EXEC_NAME=platform-demo.exe
-ZIP_NAME="platform-demo-v$VERSION.zip"
+EXEC_NAME=BeatNinja.exe
+ZIP_NAME="BeatNinja-v$VERSION.zip"
 
 rm -r $OUTPUT_DIR
 mkdir $OUTPUT_DIR

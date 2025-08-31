@@ -63,5 +63,6 @@ static bool Started = false;
 static bool MusicStarted = false;
 static bool BgChanged = true;
 static bool Stop = false;
+static bool PlayerWon = false;
 
 static const v2 WORLD_TILE_SIZE = v2{16, 16};

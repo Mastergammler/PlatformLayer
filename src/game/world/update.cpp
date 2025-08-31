@@ -11,6 +11,11 @@ void world_update(WorldGrid& grid)
             {
                 grid.start_index++;
             }
+            else
+            {
+                // end reached
+                PlayerWon = true;
+            }
         }
     }
 

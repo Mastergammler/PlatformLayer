@@ -32,10 +32,6 @@ struct GameInputState : InputState
 
 struct SpriteShelf
 {
-    PixelBuffer Grass = {};
-    PixelBuffer Plate = {};
-    PixelBuffer Border = {};
-    SpriteSheet SheetTest = {};
     SpriteSheet PlayerWalking = {};
     SpriteSheet PlayerIdle = {};
     SpriteSheet PlayerHit = {};
@@ -47,14 +43,12 @@ struct SpriteShelf
 
 struct AudioShelf
 {
-    Audio audio;
-    Audio fx;
-    Audio laserSound;
-    Audio fx_jump;
-    Audio fx_land;
-    Playback songPb = {&audio, 1};
-    Playback fxpb = {&fx, 2};
-    Playback laser = {&laserSound, 3};
-    Playback pb_jump = {&fx_jump, 4};
-    Playback pb_land = {&fx_land, 5};
+    Audio pcm_music;
+    Audio pcm_hit;
+    Audio pcm_jump;
+    Audio pcm_land;
+    Playback song = {&pcm_music, 1};
+    Playback hit = {&pcm_hit, 2};
+    Playback jump = {&pcm_jump, 4};
+    Playback land = {&pcm_land, 5};
 };

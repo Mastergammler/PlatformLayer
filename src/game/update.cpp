@@ -39,13 +39,14 @@ void game_update()
     if (GameInputs.Restart.pressed)
     {
         World.start_index = 0;
-        audio_stop_playback(Audio.songPb);
+        audio_stop_playback(Audio.song);
         player_reset(Ninja, GridSize16x16);
         beat_reset(SongClock);
-        audio_start_playback(Audio.songPb);
+        audio_start_playback(Audio.song);
         GroundIdx = (++GroundIdx % 2) + GroundOffset;
         MusicStarted = true;
         Stop = false;
+        PlayerWon = false;
         logf("Level was reset");
     }
 

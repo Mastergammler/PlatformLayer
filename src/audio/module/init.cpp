@@ -1,5 +1,4 @@
 #include "../internal.h"
-#include <winbase.h>
 
 ma_context Context;
 ma_device_config DeviceConfig;
@@ -95,6 +94,7 @@ void init_via_miniaudio()
         return;
     }
 
+    SampleRate = Device.sampleRate;
     float initTime = time_since_start(timer);
 
     logf("[miniaudio] | %.1f ms | DefaultDevice '%s' with %u channels at "

@@ -2,5 +2,5 @@
 #include "asiodrivers.cpp"
 #include "asiolist.cpp"
 #include "module/audioThread.cpp"
-#include "module/lifecycle.cpp"
+#include "module/init.cpp"
 #include "module/test.cpp"
