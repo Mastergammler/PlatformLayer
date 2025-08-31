@@ -8,8 +8,9 @@ void world_init(WorldGrid& grid, int count, int startIdx, int visible_count)
 {
     grid.tile_count = count;
     grid.visibile_tiles = visible_count;
-    grid.tiles = new WorldTile[grid.tile_count];
-    memset(grid.tiles, 0, grid.tile_count * sizeof(WorldTile));
+    // TODO: i got some off by one issue here sometimes? Dunno really
+    grid.tiles = new WorldTile[grid.tile_count + 1];
+    memset(grid.tiles, 0, (grid.tile_count + 1) * sizeof(WorldTile));
     grid.start_index = startIdx;
     grid.pixel_offset = v2{0, 0};
     grid.tile_size = WORLD_TILE_SIZE;

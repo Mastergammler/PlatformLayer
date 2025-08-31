@@ -6,6 +6,10 @@ void world_update(WorldGrid& grid)
     {
         if (BeatDivision->division_changed_this_frame)
         {
+            // FIXME: it seems like here can be a off by one issue at the end
+            //-> not 100% sure how this happens, but it looks like this, but
+            // only happens sometimes
+            //=> Maybe because of the beat change?
             if (grid.start_index + grid.visibile_tiles - 1 <
                 grid.tile_count + 1)
             {

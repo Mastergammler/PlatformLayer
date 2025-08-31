@@ -6,9 +6,8 @@ release
 .obj
 log.txt
 logs
-res/**
-!res/config
-!res/level
+res/img
+res/audio
 wip
 
 compile_commands.json

@@ -22,7 +22,9 @@
 #define NUDGE_STEPS 0.01
 #define WIN_KEYCODE_FILE "res/config/windows.conf"
 #define KEYMAPPING_FILE "res/config/keyboard.conf"
-#define LEVEL_FILE "res/level/jam.lvl"
+// TODO: For later build
+#define LEVEL_FILE "res/level/actual.lvl"
+#define LEVEL_FILE_JAM "res/level/jam.lvl"
 
 // TODO: move to a parsing module
 inline static string TrimToVariableName(string s)

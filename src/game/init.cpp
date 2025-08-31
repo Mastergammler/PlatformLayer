@@ -45,17 +45,19 @@ void game_init()
     load_sheet(Sprites.PlayerHit, "res/img/Hit.png", v2{32, 32});
     load_sheet(Sprites.PlayerJump, "res/img/NinjaJump.png", v2{32, 32});
     load_sheet(Sprites.FontSprites, "res/img/Medodica_7x10.png", v2{7, 10});
-    load_sheet(Sprites.GroundSprites, "res/img/GroundTiles_16x16.png", v2{16, 16});
+    load_sheet(Sprites.GroundSprites,
+               "res/img/GroundTiles_16x16.png",
+               v2{16, 16});
     Sprites.Font = BitmapFont{-48, -55, -61, &Sprites.FontSprites};
 
     audio_load_sound(Audio.pcm_music, "res/audio/BeatNinjaJamBeat_16B_441.wav");
     audio_load_sound(Audio.pcm_hit, "res/audio/fx_hit.wav");
     audio_load_sound(Audio.pcm_jump, "res/audio/fx_jump.wav");
     audio_load_sound(Audio.pcm_land, "res/audio/fx_land.wav");
-    Audio.song.loop = true;
+    Audio.song.loop = false;
     Audio.jump.volume = 1;
-    Audio.land.volume = 1.5;
-    Audio.song.volume = 0.8;
+    Audio.land.volume = 1.4;
+    Audio.song.volume = 0.7;
 
     float bpm = 112;
     float divisions[] = {.5, 2, 8};
@@ -72,8 +74,8 @@ void game_init()
 
     // world init testing
     vector<int> boxes;
-    parse_number_file(boxes, LEVEL_FILE);
-    int max = playerPos.x + 1;
+    parse_number_file(boxes, LEVEL_FILE_JAM);
+    int max = playerPos.x;
     if (!boxes.empty()) max += *max_element(boxes.begin(), boxes.end());
     world_init(World, max, 0, GridSize16x16.x + 2);
     world_init_tile(BoxTile, SongClock, &Sprites.GroundSprites, 10, 2, 0.5);
