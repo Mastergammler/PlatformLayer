@@ -34,7 +34,13 @@ void InitOutputStreams(bool openConsole = false)
     }
     else if (openConsole)
     {
-        AllocConsole();
+        // TEST: DEFENDER BLOCK FIX
+        // On Win11 this seems to trigger windows defender
+        // so we're not using it, and it's not even that usefull,
+        // since if the app crashes, then the console closes as well
+        // + Also kinda bad UX
+        // Defender detects a 'Win32/Wacapew.a!ml'
+        // AllocConsole();
     }
 #endif
 }
@@ -59,6 +65,14 @@ void FlushFileLogs(Logger& logger)
 void InitLogger(Logger& logger, const string& log_filePath)
 {
     logger.log_file.open(log_filePath, ios::out | ios::app);
+
+    if (logger.log_file.fail())
+    {
+        string msg = format("Unable to open log file '%s'",
+                            log_filePath.c_str());
+        Debug(msg);
+        return;
+    }
     logger.running = true;
     logger.log_thread = thread([&logger]() {
         while (logger.running)
@@ -76,12 +90,12 @@ void logger_initialize(LogSettings settings)
     logSettings = settings;
     InitOutputStreams();
 
-    string date = get_time_str();
-    string logFile = format("%s/log-%s",
+    string date = get_time_str(settings.date_format.c_str());
+    string logFile = format("%s/log-%s.log",
                             settings.log_dir.c_str(),
                             date.c_str());
     InitLogger(logger, logFile);
-    logf("----- << %s >> -----", date.c_str());
+    logf("----- << %s >> -----", get_time_str().c_str());
 }
 
 void logger_dispose()
@@ -92,5 +106,6 @@ void logger_dispose()
     FlushFileLogs(logger);
     logger.log_file.close();
 
-    cout << "Logger disposed!" << endl;
+    Debug("Logger disposed");
+    cout << flush;
 }

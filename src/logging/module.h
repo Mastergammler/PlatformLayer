@@ -8,7 +8,11 @@ struct LogSettings
 {
     string log_dir = "logs";
     string log_prefix = "[Debug]";
-    string date_format = "%Y-%m-%d %H:%M:%S";
+    /**
+     * The date format is used for file creation
+     * Think about allowed characters on win vs unix!
+     */
+    string date_format = "%Y-%m-%d_%H-%M-%S";
 };
 
 void logger_initialize(LogSettings settings);

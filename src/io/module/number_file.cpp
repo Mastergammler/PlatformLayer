@@ -23,8 +23,6 @@ void parse_number_file(vector<int>& values, const string filePath)
     int isComment = false;
     int valueEnd = false;
 
-    logf("start parsing");
-
     while (file.read(buffer, bufferSize) || file.gcount() > 0)
     {
         int bytesRead = file.gcount();
