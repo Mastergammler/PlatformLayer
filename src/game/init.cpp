@@ -75,9 +75,14 @@ void game_init()
     // world init testing
     vector<int> boxes;
     parse_number_file(boxes, LEVEL_FILE_JAM);
+    // parse_number_file(boxes, "res/level/test.lvl");
     int max = playerPos.x;
     if (!boxes.empty()) max += *max_element(boxes.begin(), boxes.end());
-    world_init(World, max, 0, GridSize16x16.x + 2);
+    // TODO: handle visible count better, this is strange
+    //-> If i implement fluid movement, then i need a extra visible tile (or a
+    // extra column rather) But this can then mess up the world movement &
+    // index!
+    world_init(World, max, 0, GridSize16x16.x);
     world_init_tile(BoxTile, SongClock, &Sprites.GroundSprites, 10, 2, 0.5);
     for (int i = 0; i < boxes.size(); i++)
     {

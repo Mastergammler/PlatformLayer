@@ -4,7 +4,6 @@
 #include "collision.h"
 #include "draw.h"
 #include "player.h"
-#include "player/types.h"
 #include "world.h"
 
 void game_update()
@@ -20,8 +19,6 @@ void game_update()
         SongClock.offset += NUDGE_STEPS;
     }
 
-    // TODO: run idle animation first
-    //-> level starts as soon as the player presses left or right
     if (!Stop)
     {
         beat_update(SongClock);
@@ -50,25 +47,6 @@ void game_update()
         logf("Level was reset");
     }
 
-    /*if (GameInputs.Right.pressed && !Started)
-    {
-        Ninja.state = WALKING;
-        audio_start_playback(Audio.songPb);
-        Started = true;
-        beat_start(SongClock);
-        GroundIdx = (++GroundIdx % 2) + GroundOffset;
-        MusicStarted = true;
-    }*/
-
-    // sync audio
-    /*if (!MusicStarted && AudioEvent.load() == AUDIO_START)
-    {
-        audio_start_playback(Audio.songPb);
-        logf("Music start signal received");
-        beat_start(SongClock);
-        GroundIdx = (++GroundIdx % 2) + GroundOffset;
-        MusicStarted = true;
-    }*/
     // hot reload functionality
     if (GameInputs.ReloadConfig.released)
     {

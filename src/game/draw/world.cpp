@@ -56,9 +56,21 @@ void draw_world()
                              v2{GridSize16x16.x, 1},
                              {true, false});
 
+    // TODO: should use some world position index
+    //-> i have this in update world & draw world, but it should use the same
+    // logic for detecting the index
     for (int i = 0; i < World.visibile_tiles; i++)
     {
         int tileIdx = i + World.start_index;
+        if (tileIdx >= World.tile_count)
+        {
+            logf("WARN: Detected invalid tile idx: %i, tileCount was %i, "
+                 "visible tiles %i",
+                 tileIdx,
+                 World.tile_count,
+                 World.visibile_tiles);
+            continue;
+        }
 
         // TODO: grid space to pixel space conversion
         if (World.tiles[tileIdx].is_visible)
