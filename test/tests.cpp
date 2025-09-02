@@ -1,4 +1,5 @@
 #include "tests/matrix_alg.cpp"
+#include "tests/parsing_test.cpp"
 #include "tests/setup_test.cpp"
 
 #define NAMED_TEST(t) {t, #t}
@@ -21,5 +22,6 @@ static TestInfo TESTS[] = {
                                         NAMED_TEST(row_swap_3x1),
                                         NAMED_TEST(row_swap_3x2),
                                         NAMED_TEST(row_swap_2x3),
+                                        NAMED_TEST(parse_config),
 
 };

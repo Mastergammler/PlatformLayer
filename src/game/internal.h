@@ -8,6 +8,7 @@
 #include "../platform.h"
 #include "../rendering/module.h"
 #include "../timing/module.h"
+#include "../util/module.h"
 #include "imports.h"
 #include "module.h"
 #include "types.h"
@@ -17,21 +18,18 @@
 #include "player/types.h"
 #include "world/types.h"
 
-#define NAMEOF(x) #x
 #define KEYBOARD_INPUTS 12
 #define NUDGE_STEPS 0.01
+#define CONFIG_STORE_SIZE 8
 #define WIN_KEYCODE_FILE "res/config/windows.conf"
 #define KEYMAPPING_FILE "res/config/keyboard.conf"
+#define GAME_CONFIG_FILE "res/config/settings.conf"
 // TODO: For later build
 #define LEVEL_FILE "res/level/actual.lvl"
 #define LEVEL_FILE_JAM "res/level/jam.lvl"
 
-// TODO: move to a parsing module
-inline static string TrimToVariableName(string s)
-{
-    size_t pos = s.find_last_of('.');
-    return pos == string::npos ? s : s.substr(pos + 1);
-}
+#define ID(x) trim_to_var_name(#x)
+#define SET_INPUT_NAME(name) GameInputs.name.identifier = ID(GameInputs.name);
 
 extern DrawBuffer Buffer;
 extern Clock GameClock;
@@ -42,7 +40,6 @@ static GameInputState GameInputs = {new KeyInput[KEYBOARD_INPUTS](),
 
 // Global state
 static DrawBuffer BgCache;
-// static BeatCounter SongClock;
 static Player Ninja;
 // world stuff
 extern WorldGrid World;
@@ -50,6 +47,7 @@ static WorldTile BoxTile;
 
 static SpriteShelf Sprites;
 static AudioShelf Audio;
+static GameConfig Config;
 
 // timings
 static DivisionCounter* GroundDivision;

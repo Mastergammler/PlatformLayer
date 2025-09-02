@@ -4,7 +4,22 @@
 #include "../input/types.h"
 #include "../rendering/types.h"
 
-// TODO: NVIM - create a generator for this?
+#define INPUT_LIST(X)                                                          \
+    X(Exit)                                                                    \
+    X(Action)                                                                  \
+    X(Help)                                                                    \
+    X(Jump)                                                                    \
+    X(ReloadConfig)                                                            \
+    X(Up)                                                                      \
+    X(Down)                                                                    \
+    X(Left)                                                                    \
+    X(Right)                                                                   \
+    X(NudgeLeft)                                                               \
+    X(NudgeRight)                                                              \
+    X(Restart)
+
+// TODO: NVIM - create a generator for
+// this?
 struct GameInputState : InputState
 {
     GameInputState(KeyInput* inputs, int count)
@@ -28,6 +43,15 @@ struct GameInputState : InputState
     KeyInput& NudgeLeft;
     KeyInput& NudgeRight;
     KeyInput& Restart;
+};
+
+struct GameConfig
+{
+    int TargetFps = 1000;
+    bool UseAsio = true;
+    string AsioDriverName = "";
+    int AudioBufferSize = 128;
+    float MasterVolume = 0.5;
 };
 
 struct SpriteShelf

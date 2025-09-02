@@ -4,10 +4,92 @@
 #include "player.h"
 #include "world.h"
 
+NamedValue find_config_value(ConfigStore configValues, string name)
+{
+    for (int i = 0; i < configValues.capacity; i++)
+    {
+        if (name == configValues.items[i].id)
+        {
+            return configValues.items[i];
+        }
+    }
+
+    logf("Value '%s' was not present in the configuration file.", name.c_str());
+    return {.empty = true};
+}
+
+template <typename T>
+void override_default(T& defaultValue,
+                      const string name,
+                      ConfigStore configValues,
+                      ValueType expectedType)
+{
+    NamedValue nv = find_config_value(configValues, name);
+    if (nv.empty) return;
+
+    // FIXME: c++17 extensions
+    if (nv.type == expectedType)
+    {
+        if constexpr (is_same_v<T, bool>)
+        {
+            defaultValue = nv.value.b;
+        }
+        else if constexpr (is_same_v<T, int>)
+        {
+            defaultValue = nv.value.i;
+        }
+        else if constexpr (is_same_v<T, float>)
+        {
+            defaultValue = nv.value.f;
+        }
+        else if constexpr (is_same_v<T, string>)
+        {
+            defaultValue = *nv.value.str;
+        }
+    }
+    else
+    {
+        logf("Expecte type %i for config value '%s' but found type %i",
+             expectedType,
+             name.c_str(),
+             nv.type);
+    }
+}
+
 void game_init()
 {
     Clock timer = {};
     timer_start(timer);
+
+    ConfigStore configValues = {.capacity = CONFIG_STORE_SIZE};
+    configValues.items = new NamedValue[CONFIG_STORE_SIZE];
+    memset((void*)configValues.items,
+           0,
+           sizeof(NamedValue) * CONFIG_STORE_SIZE);
+    parse_config_file(GAME_CONFIG_FILE, configValues);
+
+    override_default(Config.UseAsio, ID(Config.UseAsio), configValues, T_BOOL);
+    override_default(Config.TargetFps,
+                     ID(Config.TargetFps),
+                     configValues,
+                     T_INT);
+    override_default(Config.AsioDriverName,
+                     ID(Config.AsioDriverName),
+                     configValues,
+                     T_STRING);
+    override_default(Config.AudioBufferSize,
+                     ID(Config.AudioBufferSize),
+                     configValues,
+                     T_INT);
+    override_default(Config.MasterVolume,
+                     ID(Config.MasterVolume),
+                     configValues,
+                     T_FLOAT);
+
+    logf("User asio driver name is '%s'", Config.AsioDriverName.c_str());
+    logf("User fps: %i, user audio buffer: %i",
+         Config.TargetFps,
+         Config.AudioBufferSize);
 
     BgCache = {};
     BgCache.size = Buffer.size;
@@ -16,24 +98,7 @@ void game_init()
     BgCache.pixel_count = Buffer.pixel_count;
     BgCache.memory = new u32[Buffer.pixel_count];
 
-    GameInputs.Exit.identifier = TrimToVariableName(NAMEOF(GameInputs.Exit));
-    GameInputs.Action.identifier = TrimToVariableName(
-                                            NAMEOF(GameInputs.Action));
-    GameInputs.Help.identifier = TrimToVariableName(NAMEOF(GameInputs.Help));
-    GameInputs.Jump.identifier = TrimToVariableName(NAMEOF(GameInputs.Jump));
-    GameInputs.ReloadConfig.identifier = TrimToVariableName(
-                                            NAMEOF(GameInputs.ReloadConfig));
-
-    GameInputs.Up.identifier = TrimToVariableName(NAMEOF(GameInputs.Up));
-    GameInputs.Down.identifier = TrimToVariableName(NAMEOF(GameInputs.Down));
-    GameInputs.Left.identifier = TrimToVariableName(NAMEOF(GameInputs.Left));
-    GameInputs.Right.identifier = TrimToVariableName(NAMEOF(GameInputs.Right));
-    GameInputs.NudgeLeft.identifier = TrimToVariableName(
-                                            NAMEOF(GameInputs.NudgeLeft));
-    GameInputs.NudgeRight.identifier = TrimToVariableName(
-                                            NAMEOF(GameInputs.NudgeRight));
-    GameInputs.Restart.identifier = TrimToVariableName(
-                                            NAMEOF(GameInputs.Restart));
+    INPUT_LIST(SET_INPUT_NAME);
 
     GridSize16x16 = v2{Buffer.width / WORLD_TILE_SIZE.x,
                        Buffer.height / WORLD_TILE_SIZE.y};

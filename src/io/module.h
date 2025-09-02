@@ -1,13 +1,14 @@
 #pragma once
 
 #include "../rendering/types.h"
+#include "types.h"
 
 #include <string>
 #include <unordered_map>
+#include <vector>
 
-// FIXME: doing it this way breaks linking ...
-// using std::string;
-// using std::unordered_map;
+// NOTE: using std::string breaks method reference & linking
+//  unsure why exactly this happens
 
 void parse_kvp_file(std::unordered_map<std::string, std::string>* map,
                     const std::string filePath);
@@ -26,3 +27,5 @@ void load_sheet(SpriteSheet& sheet,
                 std::string imgPath,
                 v2 tileSize,
                 bool swapRB = true);
+
+void parse_config_file(const std::string filePath, ConfigStore valueStore);

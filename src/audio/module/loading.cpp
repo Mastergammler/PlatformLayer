@@ -30,9 +30,13 @@ void audio_load_sound(Audio& sound, std::string file)
              DeviceConfig.playback.format);
     }
 
-    // TODO: resampling is not done automatically
-    //  -> need to use the resource manager to do this instead ...
-
+    // PERF: Resampling a 44100 to 48000 is extremely slow
+    // a 150s 16 bit PCM takes about 30ms to load with 44100
+    // but almost 500 ms when resampling to 500ms
+    // -> is this really such a heavy operation?
+    // -> Or is it just done inefficiently?
+    // => I should probably switch to 48000 as default anyway, because
+    // most consumer hardware has this as default nowadays
     ma_resource_manager_data_source dataSource;
     result = ma_resource_manager_data_source_init(
                                             &Rm,

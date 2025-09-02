@@ -17,8 +17,6 @@ float convert_PCM16_to_float(u16 sample)
     return (float)singed / (INT16_MAX + 1);
 }
 
-static int switchCounter = 0;
-
 /*
  * According to common folk lore, this function is called when the
  * first sample of the previous buffer is getting playde
@@ -172,7 +170,6 @@ ASIOTime* bufferSwitchTimeInfo(ASIOTime* params,
                                long doubleBufferIndex,
                                ASIOBool directProcess)
 {
-    logf("switchCounter called %i", ++switchCounter);
     uint64_t samplePos = ((uint64_t)params->timeInfo.samplePosition.hi << 32) |
                          params->timeInfo.samplePosition.lo;
     // precise time the first sample of the current buffer will be played

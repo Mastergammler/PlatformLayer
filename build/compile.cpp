@@ -6,6 +6,7 @@
 #include "../src/io/compile.cpp"
 #include "../src/rendering/compile.cpp"
 #include "../src/timing/compile.cpp"
+#include "../src/util/compile.cpp"
 
 #ifdef _WIN32
 #include "../src/asio/compile.cpp"

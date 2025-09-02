@@ -115,7 +115,6 @@ void audio_init()
 
     LogAsioDrivers();
     int succes = asio_init();
-    int sampleRate = 0;
     if (succes != 0)
     {
         init_via_miniaudio();

@@ -2,3 +2,4 @@
 #include "module/init.cpp"
 #include "module/loading.cpp"
 #include "module/playback.cpp"
+#include "module/volume.cpp"

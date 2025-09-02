@@ -19,8 +19,16 @@ void audio_stop_playback(Playback pb);
 extern std::atomic<int> AudioEvent;
 extern std::atomic<int> FramesPassed;
 
+/*
+ * Master volume factor logarithmically scaled
+ * To match listener perception (linear loudness increase)
+ */
+extern float MasterVolume;
+
 u16 clip(int32_t sample);
 u16 mix_and_clip(u16 a, u16 b);
 u16 adjust_volume(u16 sample, float factor);
+
+float volume_to_gain(float sliderValue);
 
 // TODO: loudness etc info

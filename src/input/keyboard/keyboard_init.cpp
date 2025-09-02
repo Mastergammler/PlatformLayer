@@ -43,6 +43,7 @@ void input_init_keyboard(InputState* inputs,
     parse_kvp_file(&keybindings, mappingFile);
     parse_kvp_file(&keycodes, keycodeFile);
 
+    // FIXME: C++17 extension
     for (const auto& [key, value] : keybindings)
     {
         KeyInput* input = FindInput(inputs, key);
