@@ -31,6 +31,20 @@ void world_update(WorldGrid& grid)
         {
             BgChanged = true;
         }
+        if (PixelDivision->division_changed_this_frame && !PlayerWon)
+        {
+            // we're starting at beat 1, but the offset should start at 0
+            WorldOffset.x = -((PixelDivision->current_division - 1) %
+                              World.tile_size.x);
+        }
+        if (BgParalaxDivision->division_changed_this_frame && !PlayerWon)
+        {
+            // TODO: dunno quite why but for some reason this has be positive to
+            // seem to moving backwards?
+            //-> Don't quite understand why yet
+            ParalaxOffset.x = (BgParalaxDivision->current_division - 1) %
+                              World.tile_size.x;
+        }
     }
 
     for (int i = 0; i < grid.visibile_tiles; i++)

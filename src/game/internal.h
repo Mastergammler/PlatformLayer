@@ -42,8 +42,10 @@ static GameInputState GameInputs = {new KeyInput[KEYBOARD_INPUTS](),
 static DrawBuffer BgCache;
 static Player Ninja;
 // world stuff
-extern WorldGrid World;
+static WorldGrid World;
 static WorldTile BoxTile;
+static v2 WorldOffset;
+static v2 ParalaxOffset;
 
 static SpriteShelf Sprites;
 static AudioShelf Audio;
@@ -54,6 +56,8 @@ static DivisionCounter* GroundDivision;
 static DivisionCounter* BgDivision;
 static DivisionCounter* BeatDivision;
 static DivisionCounter* MeasureDivision;
+static DivisionCounter* PixelDivision;
+static DivisionCounter* BgParalaxDivision;
 
 // TODO: move to game state general
 static int GroundIdx = 0;

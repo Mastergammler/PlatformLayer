@@ -11,18 +11,23 @@ void rendering_fill_grid_area(DrawBuffer buffer,
                               v2 endTile,
                               DrawOptions opt)
 {
-    int columns = buffer.width / sprite.size.width;
-    int rows = buffer.height / sprite.size.height;
+    int xMax = buffer.width / sprite.size.width;
+    int yMax = buffer.height / sprite.size.height;
+    int xMin = 0;
+    int yMin = 0;
 
     if (startTile.x == endTile.x) endTile.x++;
     if (startTile.y == endTile.y) endTile.y++;
 
-    // TODO: validate other way around also -> proper clipping
-    int startRow = startTile.y > 0 ? startTile.y : 0;
-    int endRow = endTile.y <= rows ? endTile.y : rows;
+    if (opt.offset.x > 0) xMin--;
+    if (opt.offset.x < 0) xMax++;
 
-    int startCol = startTile.x > 0 ? startTile.x : 0;
-    int endCol = endTile.x <= columns ? endTile.x : columns;
+    // TODO: validate other way around also -> proper clipping
+    int startRow = startTile.y > 0 ? startTile.y : yMin;
+    int endRow = endTile.y <= yMax ? endTile.y : yMax;
+
+    int startCol = startTile.x > 0 ? startTile.x : xMin;
+    int endCol = endTile.x <= xMax ? endTile.x : xMax;
 
     for (int y = startRow; y < endRow; y++)
     {
@@ -43,12 +48,12 @@ void rendering_fill_screen_rng(DrawBuffer buffer,
                                int toIdx,
                                DrawOptions opt)
 {
-    int columns = buffer.width / sheet.tile_size.width;
-    int rows = buffer.height / sheet.tile_size.height;
+    int xMax = buffer.width / sheet.tile_size.width;
+    int yMax = buffer.height / sheet.tile_size.height;
 
-    for (int y = 0; y < rows; y++)
+    for (int y = 0; y < yMax; y++)
     {
-        for (int x = 0; x < columns; x++)
+        for (int x = 0; x < xMax; x++)
         {
             int tileIdx = get_rng_inclusive(fromIdx, toIdx);
             PixelBuffer curSprite = sheet.tiles[tileIdx];
@@ -109,6 +114,8 @@ void rendering_draw_sprite(DrawBuffer buffer,
                            v2 pos,
                            DrawOptions opt)
 {
+    pos = pos + opt.offset;
+
     if (pos.x >= buffer.width || pos.x < 0 - sprite.size.width ||
         pos.y >= buffer.height || pos.y < 0 - sprite.size.height)
         return;
@@ -138,7 +145,12 @@ void rendering_draw_sprite(DrawBuffer buffer,
     for (int y = 0; y < yVisible; y++)
     {
         bufferPixel = bufferStart + y * buffer.width;
-        bitmapPixel = bitmapStart + y * sprite.size.width;
+
+        // TEST: does this also work for right to left?
+        int bitmapPixelsObstructed = xStart == 0 ? sprite.size.width - xVisible
+                                                 : 0;
+        bitmapPixel = bitmapStart + y * sprite.size.width +
+                      bitmapPixelsObstructed;
 
         if (!opt.left_to_right)
             bitmapPixel = bitmapPixel + sprite.size.width - 1;

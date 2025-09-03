@@ -9,6 +9,9 @@ struct DrawOptions
 {
     bool left_to_right = true;
     bool top_to_bottom = true;
+    // TODO: this vector doesn't seem to be
+    // zero initalized automatically??
+    v2 offset = {0, 0};
 };
 
 struct DrawBuffer

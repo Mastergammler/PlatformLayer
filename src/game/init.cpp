@@ -92,17 +92,15 @@ void game_init()
          Config.AudioBufferSize);
 
     BgCache = {};
-    BgCache.size = Buffer.size;
-    BgCache.height = Buffer.height;
-    BgCache.width = Buffer.width;
-    BgCache.pixel_count = Buffer.pixel_count;
-    BgCache.memory = new u32[Buffer.pixel_count];
+    // drawing one more, because of the offset handling
+    // TODO: i need a proper system for this ground movement!!!
+    BgCache.height = Buffer.height + WORLD_TILE_SIZE.y;
+    BgCache.width = Buffer.width + WORLD_TILE_SIZE.x;
+    BgCache.pixel_count = BgCache.height * BgCache.width;
+    BgCache.size = BgCache.pixel_count * sizeof(u32);
+    BgCache.memory = new u32[BgCache.pixel_count];
 
     INPUT_LIST(SET_INPUT_NAME);
-
-    GridSize16x16 = v2{Buffer.width / WORLD_TILE_SIZE.x,
-                       Buffer.height / WORLD_TILE_SIZE.y};
-
     input_init_keyboard(&GameInputs, KEYMAPPING_FILE, WIN_KEYCODE_FILE);
 
     load_sheet(Sprites.PlayerWalking, "res/img/Walk.png", v2{32, 32});
@@ -124,9 +122,20 @@ void game_init()
     Audio.land.volume = 1.4;
     Audio.song.volume = 0.7;
 
+    GridSize16x16 = v2{Buffer.width / WORLD_TILE_SIZE.x,
+                       Buffer.height / WORLD_TILE_SIZE.y};
+    float groundDiv = 1.;
+    float pixelDivision = groundDiv * WORLD_TILE_SIZE.x;
+    float paralaxDivision = pixelDivision * 0.5;
     float bpm = 112;
-    float divisions[] = {.5, 2, 8};
-    beat_init(SongClock, bpm, 4, divisions, 3);
+    float divisions[] = {.5,
+                         0.125,
+                         2,
+                         8,
+                         groundDiv,
+                         pixelDivision,
+                         paralaxDivision};
+    beat_init(SongClock, bpm, 4, divisions, 7);
     player_init(Ninja, SongClock, Sprites, GridSize16x16);
     Ninja.facing_forward = true;
     v2 playerPos = (Ninja.screen_position + Ninja.center_point) /
@@ -155,10 +164,16 @@ void game_init()
         world_add_tile(World, BoxTile, boxes[i] - 1 + playerPos.x);
     }
 
-    GroundDivision = beat_find_division(SongClock, 1);
+    GroundDivision = beat_find_division(SongClock, groundDiv);
+    // NOTE: This has to match the paralax as well
+    // -> Because else i just move it back and forth again
+    // -> I only have 1 extra column to draw -> i could of change it to get more
+    // leavay, but need a better system for this then
     BgDivision = beat_find_division(SongClock, 0.5);
     BeatDivision = beat_find_division(SongClock, 1);
     MeasureDivision = beat_find_division(SongClock, 0.25);
+    PixelDivision = beat_find_division(SongClock, pixelDivision);
+    BgParalaxDivision = beat_find_division(SongClock, paralaxDivision);
 
     GroundIdx = GroundOffset;
     beat_start(SongClock);
