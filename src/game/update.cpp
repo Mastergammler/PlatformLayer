@@ -28,7 +28,8 @@ void game_update()
         player_update(Ninja);
     }
 
-    draw_world();
+    draw_background();
+    draw_foreground();
     draw_player();
     draw_ui();
 

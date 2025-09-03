@@ -21,9 +21,9 @@
 #define KEYBOARD_INPUTS 12
 #define NUDGE_STEPS 0.01
 #define CONFIG_STORE_SIZE 8
-#define WIN_KEYCODE_FILE "res/config/windows.conf"
-#define KEYMAPPING_FILE "res/config/keyboard.conf"
-#define GAME_CONFIG_FILE "res/config/settings.conf"
+#define WIN_KEYCODE_FILE "configs/windows.conf"
+#define KEYMAPPING_FILE "configs/keyboard.conf"
+#define GAME_CONFIG_FILE "configs/settings.conf"
 // TODO: For later build
 #define LEVEL_FILE "res/level/actual.lvl"
 #define LEVEL_FILE_JAM "res/level/jam.lvl"

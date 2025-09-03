@@ -1,22 +1,7 @@
 #include "../internal.h"
 
-void draw_world()
+void draw_background()
 {
-    if (MusicStarted)
-    {
-        // TODO: handle this properly with the world
-        if (GroundDivision->division_changed_this_frame)
-        {
-            GroundIdx = (++GroundIdx % 2) + GroundOffset;
-            // GroundIdx = ++GroundIdx % Sprites.SheetTest.tile_count;
-        }
-        if (BgDivision->division_changed_this_frame)
-        {
-            BgChanged = true;
-        }
-    }
-
-    // TODO: cache the current one, and only update on frame changes etc
     if (BgChanged)
     {
         rendering_fill_screen_rng(BgCache,
@@ -35,7 +20,6 @@ void draw_world()
                              Sprites.GroundSprites.tiles[12],
                              v2{0, GridSize16x16.y - 1},
                              v2{GridSize16x16.x, GridSize16x16.y - 1});
-
     rendering_fill_grid_area(Buffer,
                              Sprites.GroundSprites.tiles[GroundIdx],
                              // FIXME: something here doesn't make any sense
@@ -55,7 +39,10 @@ void draw_world()
                              v2{0, 1},
                              v2{GridSize16x16.x, 1},
                              {true, false});
+}
 
+void draw_foreground()
+{
     // TODO: should use some world position index
     //-> i have this in update world & draw world, but it should use the same
     // logic for detecting the index

@@ -2,4 +2,5 @@
 
 void draw_ui();
 void draw_player();
-void draw_world();
+void draw_background();
+void draw_foreground();

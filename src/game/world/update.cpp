@@ -1,5 +1,7 @@
 #include "../internal.h"
 
+#define NUM_FLOOR_TILES 2
+
 void world_update(WorldGrid& grid)
 {
     if (MusicStarted)
@@ -20,6 +22,14 @@ void world_update(WorldGrid& grid)
                 // end reached
                 PlayerWon = true;
             }
+        }
+        if (GroundDivision->division_changed_this_frame)
+        {
+            GroundIdx = (++GroundIdx % NUM_FLOOR_TILES) + GroundOffset;
+        }
+        if (BgDivision->division_changed_this_frame)
+        {
+            BgChanged = true;
         }
     }
 

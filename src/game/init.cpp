@@ -139,8 +139,7 @@ void game_init()
 
     // world init testing
     vector<int> boxes;
-    parse_number_file(boxes, LEVEL_FILE_JAM);
-    // parse_number_file(boxes, "res/level/test.lvl");
+    parse_number_file(boxes, LEVEL_FILE);
     int max = playerPos.x;
     if (!boxes.empty()) max += *max_element(boxes.begin(), boxes.end());
     // TODO: handle visible count better, this is strange
