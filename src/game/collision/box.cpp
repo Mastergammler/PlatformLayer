@@ -32,7 +32,8 @@ void collision_box_player(Player& player)
     if (World.tiles[playerWorldPosition.x].is_visible)
     {
         // ON COLLISION ENTER
-        if (!player.collider.collision_active && player.state == WALKING)
+        if (!player.collider.collision_active &&
+            player.current_state == WALKING)
         {
             player.collider.collision_active = true;
             player.collider.collision_enter_frame = true;

@@ -105,7 +105,7 @@ void game_init()
 
     load_sheet(Sprites.PlayerWalking, "res/img/Walk.png", v2{32, 32});
     load_sheet(Sprites.PlayerIdle, "res/img/Idle.png", v2{32, 32});
-    load_sheet(Sprites.PlayerHit, "res/img/Hit.png", v2{32, 32});
+    load_sheet(Sprites.PlayerCollision, "res/img/Hit.png", v2{32, 32});
     load_sheet(Sprites.PlayerJump, "res/img/NinjaJump.png", v2{32, 32});
     load_sheet(Sprites.FontSprites, "res/img/Medodica_7x10.png", v2{7, 10});
     load_sheet(Sprites.GroundSprites,
@@ -131,11 +131,12 @@ void game_init()
     float divisions[] = {.5,
                          0.125,
                          2,
+                         4,
                          8,
                          groundDiv,
                          pixelDivision,
                          paralaxDivision};
-    beat_init(SongClock, bpm, 4, divisions, 7);
+    beat_init(SongClock, bpm, 4, divisions, 8);
     player_init(Ninja, SongClock, Sprites, GridSize16x16);
     Ninja.facing_forward = true;
     v2 playerPos = (Ninja.screen_position + Ninja.center_point) /

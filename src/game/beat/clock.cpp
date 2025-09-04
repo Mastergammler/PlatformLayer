@@ -79,8 +79,6 @@ void beat_reset(BeatCounter& clock)
 
 void beat_update(BeatCounter& clock)
 {
-    // if (!MusicStarted) return;
-
     timer_update(clock.timer);
     clock.elapsed += clock.timer.sim_time;
 

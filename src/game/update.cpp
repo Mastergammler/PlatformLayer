@@ -19,7 +19,26 @@ void game_update()
         SongClock.offset += NUDGE_STEPS;
     }
 
-    if (!Stop)
+    if (GameInputs.Help.pressed)
+    {
+        Freeze = !Freeze;
+        if (Freeze)
+        {
+            // TODO: another state machine :O
+            // -> this interacts poorly now with reset etc
+            SongClock.timer.time_scale = 0;
+            timer_update(SongClock.timer);
+            audio_stop_playback(&Audio.song);
+        }
+        else
+        {
+            audio_start_playback(Audio.song, false);
+            SongClock.timer.time_scale = 1;
+            timer_update(SongClock.timer);
+        }
+    }
+
+    if (!Freeze)
     {
         beat_update(SongClock);
         world_update(World);
@@ -37,13 +56,13 @@ void game_update()
     if (GameInputs.Restart.pressed)
     {
         World.start_index = 0;
-        audio_stop_playback(Audio.song);
+        audio_stop_playback(&Audio.song);
         player_reset(Ninja, GridSize16x16);
         beat_reset(SongClock);
         audio_start_playback(Audio.song);
         GroundIdx = (++GroundIdx % 2) + GroundOffset;
         MusicStarted = true;
-        Stop = false;
+        Freeze = false;
         PlayerWon = false;
         logf("Level was reset");
     }

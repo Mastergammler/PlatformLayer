@@ -14,6 +14,6 @@ void player_move(Player& player, bool forward)
         player.screen_position.x -= distance;
     }
 
-    player.state = WALKING;
+    player.current_state = WALKING;
     player.facing_forward = forward;
 }

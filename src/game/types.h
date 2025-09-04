@@ -58,7 +58,7 @@ struct SpriteShelf
 {
     SpriteSheet PlayerWalking = {};
     SpriteSheet PlayerIdle = {};
-    SpriteSheet PlayerHit = {};
+    SpriteSheet PlayerCollision = {};
     SpriteSheet PlayerJump = {};
     SpriteSheet FontSprites = {};
     SpriteSheet GroundSprites = {};
