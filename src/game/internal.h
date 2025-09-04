@@ -33,8 +33,9 @@
 
 extern DrawBuffer Buffer;
 extern Clock GameClock;
-extern BeatCounter SongClock;
+extern StateBehaviour PLAYER_TRANSITIONS[PlayerStateIdCount];
 
+static BeatCounter SongClock;
 static GameInputState GameInputs = {new KeyInput[KEYBOARD_INPUTS](),
                                     KEYBOARD_INPUTS};
 

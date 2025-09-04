@@ -1,5 +1,6 @@
 #pragma once
 
+#include "module/assert.h"
 #include <string>
 
 bool is_upper(char c);

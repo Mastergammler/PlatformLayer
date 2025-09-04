@@ -149,7 +149,7 @@ int parse_text(ifstream& file, ConfigStore store)
                                  "skipped!",
                                  store.capacity,
                                  string(keyBuffer.chars, keyBuffer.index).c_str());
-                            assert(false);
+                            ASSERT(false, "Increase config store capacity!");
                         }
                     }
 

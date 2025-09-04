@@ -8,8 +8,7 @@ void player_init(Player& player,
                  v2 gridSize)
 {
 
-    player.state_count = 4;
-    player.states = new PlayerState[player.state_count];
+    player.states = new PlayerState[PlayerStateIdCount];
 
     player.states[IDLE] = {IDLE,
                            0,

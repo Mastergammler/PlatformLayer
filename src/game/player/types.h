@@ -6,18 +6,31 @@
 #include "../beat/types.h"
 #include "../collision/types.h"
 
+struct Player;
+typedef void (*PlayerStateEnter)(Player& p);
+typedef void (*PlayerStateUpdate)(Player& p);
+typedef void (*PlayerStateExit)(Player& p);
+
 enum PlayerStateId
 {
     IDLE,
     WALKING,
     JUMPING,
-    COLLIDING
+    COLLIDING,
+    PlayerStateIdCount
+};
+
+// vtable
+struct StateBehaviour
+{
+    PlayerStateEnter enter;
+    PlayerStateUpdate update;
+    PlayerStateExit exit;
 };
 
 struct PlayerState
 {
     PlayerStateId id;
-
     int sprite_idx;
     int start_offset;
     SpriteSheet* sprites;
@@ -35,25 +48,11 @@ struct Player
 
     PlayerStateId current_state;
     PlayerState* states;
-    int state_count;
 
     // TODO: do i need this? is this not to be done through subdivisions?
     // -> because it should be in sync as well
     // => Or maybe it's done through the camera later anyway?
     float movement_speed;
-
-    /*SpriteSheet* idle_sprites;
-    DivisionCounter* idle_counter;
-    SpriteSheet* hit_sprites;
-    SpriteSheet* walking_sprites;
-    DivisionCounter* walking_counter;
-    SpriteSheet* jump_sprites;
-    DivisionCounter* jump_counter;
-
-    // TODO: do i need the index?
-    int walking_idx;
-    int jump_idx;
-    int idle_idx;*/
 
     PixelBuffer* current_sprite;
     Collider collider;
