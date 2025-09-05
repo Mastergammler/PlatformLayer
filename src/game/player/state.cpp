@@ -44,7 +44,7 @@ void player_jump_enter(Player& player)
     player.states[JUMPING].sprite_idx = player.states[JUMPING].counter->current_division %
                                         player.states[JUMPING].sprites->tile_count;
 
-    player.jump_elapsed = 0;
+    player.jump_divs_elapsed = 0;
     player.screen_position.y -= WORLD_TILE_SIZE.y;
     audio_start_playback(Audio.jump);
 }
@@ -60,15 +60,17 @@ void player_jump_update(Player& player)
     PlayerState* state = &player.states[player.current_state];
     if (state->counter->division_changed_this_frame)
     {
-        if (player.jump_elapsed >= player.jump_max)
+        if ((GameInputs.Jump.is_down &&
+             player.jump_divs_elapsed < player.jump_max) ||
+            player.jump_divs_elapsed < player.jump_min)
         {
-            player_transition_to(player, WALKING);
+            player.jump_divs_elapsed++;
+            state->sprite_idx = state->counter->current_division %
+                                state->sprites->tile_count;
         }
         else
         {
-            player.jump_elapsed++;
-            state->sprite_idx = state->counter->current_division %
-                                state->sprites->tile_count;
+            player_transition_to(player, WALKING);
         }
     }
 }
@@ -116,6 +118,7 @@ void player_idle_update(Player& player)
 void player_colliding_enter(Player& player)
 {
     audio_start_playback(Audio.hit);
+    audio_start_playback(Audio.box);
     Game.current_state = PLAYER_LOST;
     audio_stop_playback(&Audio.song);
 }

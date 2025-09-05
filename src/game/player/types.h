@@ -56,6 +56,7 @@ struct Player
 
     PixelBuffer* current_sprite;
     Collider collider;
-    int jump_elapsed;
+    int jump_divs_elapsed;
     int jump_max;
+    int jump_min;
 };

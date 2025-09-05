@@ -117,10 +117,12 @@ void game_init()
     audio_load_sound(Audio.pcm_hit, "res/audio/fx_hit.wav");
     audio_load_sound(Audio.pcm_jump, "res/audio/fx_jump.wav");
     audio_load_sound(Audio.pcm_land, "res/audio/fx_land.wav");
+    audio_load_sound(Audio.pcm_box, "res/audio/fx_box.wav");
     Audio.song.loop = false;
     Audio.jump.volume = 1;
     Audio.land.volume = 1.4;
     Audio.song.volume = 0.7;
+    Audio.box.volume = 0.5;
 
     GridSize16x16 = v2{Buffer.width / WORLD_TILE_SIZE.x,
                        Buffer.height / WORLD_TILE_SIZE.y};

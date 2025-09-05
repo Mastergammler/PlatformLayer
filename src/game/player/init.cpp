@@ -44,7 +44,11 @@ void player_init(Player& player,
     player.screen_position = f2{(float)gridSize.x / 2 * WORLD_TILE_SIZE.x,
                                 (float)(gridSize.y - 2) * WORLD_TILE_SIZE.y};
 
+    // it feels pretty bad if you can have a short jump
+    // that lands you in a box, that sucks
+    // -> So we do a minimum of box width here
     player.jump_max = 4;
+    player.jump_min = 2;
     player.movement_speed = 100;
     player.collider = {};
     player.current_state = IDLE;
