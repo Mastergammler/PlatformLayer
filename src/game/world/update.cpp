@@ -1,51 +1,17 @@
 #include "../internal.h"
+#include "../world.h"
 
 #define NUM_FLOOR_TILES 2
 
-void world_update(WorldGrid& grid)
+void world_animate(WorldGrid& grid)
 {
-    if (Game.current_state == LEVEL_STARTED)
+    if (GroundDivision->division_changed_this_frame)
     {
-        if (BeatDivision->division_changed_this_frame)
-        {
-            // TODO: this condition is kinda bad! This way of world movement
-            // works poorly
-            // -> just because visible tiles is always 1 greater than what is
-            // displayed
-            // => Which means the movement stops before the last tile is shown
-            if (grid.start_index + grid.visibile_tiles < grid.tile_count)
-            {
-                grid.start_index++;
-            }
-            else
-            {
-                // end reached
-                Game.current_state = PLAYER_WON;
-            }
-        }
-        // TODO: player won state changes?
-        if (GroundDivision->division_changed_this_frame)
-        {
-            GroundIdx = (++GroundIdx % NUM_FLOOR_TILES) + GroundOffset;
-        }
-        if (BgDivision->division_changed_this_frame)
-        {
-            BgChanged = true;
-        }
-        if (PixelDivision->division_changed_this_frame)
-        {
-            // we're starting at beat 1, but the offset should start at 0
-            WorldOffset.x = -((PixelDivision->current_division - 1) %
-                              World.tile_size.x);
-        }
-        if (BgParalaxDivision->division_changed_this_frame)
-        {
-            // TODO: dunno quite why but for some reason this has be positive to
-            // seem to moving backwards?
-            //-> Don't quite understand why yet
-            ParalaxOffset.x = (BgParalaxDivision->current_division - 1) %
-                              World.tile_size.x;
-        }
+        GroundIdx = (++GroundIdx % NUM_FLOOR_TILES) + GroundOffset;
+    }
+    if (BgDivision->division_changed_this_frame)
+    {
+        BgChanged = true;
     }
 
     for (int i = 0; i < grid.visibile_tiles; i++)
@@ -77,4 +43,13 @@ void world_update(WorldGrid& grid)
             tile->current_sprite = &tile->sheet->tiles[tile->sprite_index];
         }
     }
+}
+
+void world_update(WorldGrid& grid)
+{
+    if (Game.current_state == LEVEL_STARTED)
+    {
+        world_move(grid);
+    }
+    world_animate(grid);
 }

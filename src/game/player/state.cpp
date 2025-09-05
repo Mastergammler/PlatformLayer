@@ -30,6 +30,14 @@ StateBehaviour PLAYER_TRANSITIONS[PlayerStateIdCount] = {
                                                        player_colliding_update,
                                                        noop}};
 
+void set_animation_index(PlayerState* state)
+{
+    // -1 because beats start at 1
+    state->sprite_idx = (state->counter->current_division - 1 +
+                         state->start_offset) %
+                        state->sprites->tile_count;
+}
+
 void player_transition_to(Player& player, PlayerStateId newState)
 {
     PlayerStateId oldState = player.current_state;
@@ -65,8 +73,7 @@ void player_jump_update(Player& player)
             player.jump_divs_elapsed < player.jump_min)
         {
             player.jump_divs_elapsed++;
-            state->sprite_idx = state->counter->current_division %
-                                state->sprites->tile_count;
+            set_animation_index(state);
         }
         else
         {
@@ -91,16 +98,8 @@ void player_walking_update(Player& player)
         if (state->counter->division_changed_this_frame)
         {
             // TEST: not 100% sure if that is right, it seems to
-            // start on idx 6 when logging
-            // -> but it looks right, and the first beat is also
-            // right!
-            state->sprite_idx = (state->counter->current_division +
-                                 state->start_offset - 1) %
-                                state->sprites->tile_count;
-            if (GameInputs.Action.is_down)
-            {
-                logf("Next walking idx: %i", state->sprite_idx);
-            }
+            // start on idx 6 when logging -> need better debug tools
+            set_animation_index(state);
         }
     }
 }
@@ -110,8 +109,7 @@ void player_idle_update(Player& player)
     PlayerState* state = &player.states[player.current_state];
     if (state->counter->division_changed_this_frame)
     {
-        state->sprite_idx = state->counter->current_division %
-                            state->sprites->tile_count;
+        set_animation_index(state);
     }
 }
 

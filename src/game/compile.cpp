@@ -5,6 +5,7 @@
 #include "beat/update.cpp"
 
 #include "world/init.cpp"
+#include "world/movement.cpp"
 #include "world/update.cpp"
 
 #include "player/init.cpp"

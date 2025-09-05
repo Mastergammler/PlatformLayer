@@ -22,7 +22,7 @@ void player_init(Player& player,
                               beat_find_division(counter, 8.)};
     player.states[JUMPING] = {JUMPING,
                               0,
-                              0,
+                              1,
                               &shelf.PlayerJump,
                               beat_find_division(counter, 2.)};
     player.states[COLLIDING] = {COLLIDING,

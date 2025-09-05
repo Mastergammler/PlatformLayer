@@ -26,7 +26,7 @@
 #define GAME_CONFIG_FILE "configs/settings.conf"
 // TODO: For later build
 #define LEVEL_FILE "res/level/actual.lvl"
-#define LEVEL_FILE_JAM "res/level/jam.lvl"
+#define LEVEL_FILE_TEST "res/level/test.lvl"
 
 #define ID(x) trim_to_var_name(#x)
 #define SET_INPUT_NAME(name) GameInputs.name.identifier = ID(GameInputs.name);

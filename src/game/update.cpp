@@ -38,7 +38,7 @@ void game_update()
         }
     }
 
-    if (Game.current_state == LEVEL_STARTED)
+    if (Game.current_state == LEVEL_STARTED || Game.current_state == PLAYER_WON)
     {
         beat_update(SongClock);
         world_update(World);

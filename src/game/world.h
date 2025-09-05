@@ -9,3 +9,4 @@ void world_init_tile(WorldTile& tile,
                      int minIdx,
                      int maxIdx,
                      float subdivision);
+void world_move(WorldGrid& grid);
