@@ -58,6 +58,7 @@ struct SpriteShelf
 {
     SpriteSheet PlayerWalking = {};
     SpriteSheet PlayerIdle = {};
+    SpriteSheet PlayerAttack = {};
     SpriteSheet PlayerCollision = {};
     SpriteSheet PlayerJump = {};
     SpriteSheet FontSprites = {};
@@ -65,6 +66,7 @@ struct SpriteShelf
     BitmapFont Font = {};
 };
 
+// TODO: use array & enum instead??
 struct AudioShelf
 {
     Audio pcm_music;
@@ -72,11 +74,13 @@ struct AudioShelf
     Audio pcm_jump;
     Audio pcm_land;
     Audio pcm_box;
+    Audio pcm_sword;
     Playback song = {&pcm_music, 1};
     Playback hit = {&pcm_hit, 2};
     Playback box = {&pcm_box, 3};
     Playback jump = {&pcm_jump, 4};
     Playback land = {&pcm_land, 5};
+    Playback sword = {&pcm_sword, 6};
 };
 
 enum GameStateId

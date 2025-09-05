@@ -107,6 +107,7 @@ void game_init()
     load_sheet(Sprites.PlayerIdle, "res/img/Idle.png", v2{32, 32});
     load_sheet(Sprites.PlayerCollision, "res/img/Hit.png", v2{32, 32});
     load_sheet(Sprites.PlayerJump, "res/img/NinjaJump.png", v2{32, 32});
+    load_sheet(Sprites.PlayerAttack, "res/img/Attack.png", v2{32, 32});
     load_sheet(Sprites.FontSprites, "res/img/Medodica_7x10.png", v2{7, 10});
     load_sheet(Sprites.GroundSprites,
                "res/img/GroundTiles_16x16.png",
@@ -118,6 +119,7 @@ void game_init()
     audio_load_sound(Audio.pcm_jump, "res/audio/fx_jump.wav");
     audio_load_sound(Audio.pcm_land, "res/audio/fx_land.wav");
     audio_load_sound(Audio.pcm_box, "res/audio/fx_box.wav");
+    audio_load_sound(Audio.pcm_sword, "res/audio/fx_sword.wav");
     Audio.song.loop = false;
     Audio.jump.volume = 1;
     Audio.land.volume = 1.4;

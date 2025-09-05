@@ -12,6 +12,9 @@ void player_colliding_enter(Player& player);
 
 void player_walking_update(Player& player);
 
+void player_attack_enter(Player& player);
+void player_attack_update(Player& player);
+
 void noop(Player& player)
 {
 }
@@ -28,6 +31,9 @@ StateBehaviour PLAYER_TRANSITIONS[PlayerStateIdCount] = {
                                                      player_jump_exit},
                                         [COLLIDING] = {player_colliding_enter,
                                                        player_colliding_update,
+                                                       noop},
+                                        [ATTACKING] = {player_attack_enter,
+                                                       player_attack_update,
                                                        noop}};
 
 void set_animation_index(PlayerState* state)
@@ -52,7 +58,7 @@ void player_jump_enter(Player& player)
     player.states[JUMPING].sprite_idx = player.states[JUMPING].counter->current_division %
                                         player.states[JUMPING].sprites->tile_count;
 
-    player.jump_divs_elapsed = 0;
+    player.states[JUMPING].elapsed_divisions = 0;
     player.screen_position.y -= WORLD_TILE_SIZE.y;
     audio_start_playback(Audio.jump);
 }
@@ -69,11 +75,48 @@ void player_jump_update(Player& player)
     if (state->counter->division_changed_this_frame)
     {
         if ((GameInputs.Jump.is_down &&
-             player.jump_divs_elapsed < player.jump_max) ||
-            player.jump_divs_elapsed < player.jump_min)
+             state->elapsed_divisions < player.jump_max) ||
+            state->elapsed_divisions < player.jump_min)
         {
-            player.jump_divs_elapsed++;
+            state->elapsed_divisions++;
             set_animation_index(state);
+        }
+        else
+        {
+            player_transition_to(player, WALKING);
+        }
+    }
+}
+
+void player_attack_enter(Player& player)
+{
+    player.states[ATTACKING].elapsed_divisions = 0;
+    player.states[ATTACKING].sprite_idx = 0;
+    audio_start_playback(Audio.sword);
+}
+
+void player_attack_update(Player& player)
+{
+    PlayerState* state = &player.states[player.current_state];
+    // animation cancel logic - restrict attack to minimum?
+    if (GameInputs.Right.pressed && state->elapsed_divisions >= 2)
+    {
+        player_transition_to(player, ATTACKING);
+    }
+    else if (GameInputs.Jump.pressed)
+    {
+        player_transition_to(player, JUMPING);
+    }
+    else if (state->counter->division_changed_this_frame)
+    {
+        // FIXME: somehow the 5th animation frame is also shown
+        //-> when i put this to 4, which is strange ...
+        //=> Not quite sure what's going on here
+        if (state->elapsed_divisions < 4)
+        {
+            state->elapsed_divisions++;
+            state->sprite_idx = ++state->sprite_idx %
+                                state->sprites->tile_count;
         }
         else
         {
@@ -91,6 +134,10 @@ void player_walking_update(Player& player)
     else if (GameInputs.Jump.pressed)
     {
         player_transition_to(player, JUMPING);
+    }
+    else if (GameInputs.Right.pressed)
+    {
+        player_transition_to(player, ATTACKING);
     }
     else
     {

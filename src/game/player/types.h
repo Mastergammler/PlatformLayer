@@ -17,6 +17,7 @@ enum PlayerStateId
     WALKING,
     JUMPING,
     COLLIDING,
+    ATTACKING,
     PlayerStateIdCount
 };
 
@@ -35,6 +36,7 @@ struct PlayerState
     int start_offset;
     SpriteSheet* sprites;
     DivisionCounter* counter;
+    int elapsed_divisions;
 };
 
 struct Player
@@ -56,7 +58,6 @@ struct Player
 
     PixelBuffer* current_sprite;
     Collider collider;
-    int jump_divs_elapsed;
     int jump_max;
     int jump_min;
 };
