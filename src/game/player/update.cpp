@@ -3,7 +3,7 @@
 
 void player_update(Player& player)
 {
-    if (PlayerWon)
+    if (Game.current_state == PLAYER_WON)
     {
         player.current_state = IDLE;
     }

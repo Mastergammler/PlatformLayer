@@ -7,7 +7,8 @@ void draw_ui()
                         format("Offset: %.f ms", SongClock.offset * 1000),
                         v2{8, 8},
                         true);
-    if (MusicStarted && !PlayerWon)
+    if (Game.current_state == LEVEL_STARTED ||
+        Game.current_state == LEVEL_PAUSED)
     {
         rendering_draw_text(Buffer,
                             Sprites.Font,
@@ -20,7 +21,7 @@ void draw_ui()
     }
 
     string text;
-    if (PlayerWon)
+    if (Game.current_state == PLAYER_WON)
     {
         text = "Congratiulations  here is your Biscuit";
     }

@@ -76,3 +76,17 @@ struct AudioShelf
     Playback jump = {&pcm_jump, 4};
     Playback land = {&pcm_land, 5};
 };
+
+enum GameStateId
+{
+    INIT,
+    LEVEL_STARTED,
+    LEVEL_PAUSED,
+    PLAYER_LOST,
+    PLAYER_WON
+};
+
+struct GameState
+{
+    GameStateId current_state;
+};

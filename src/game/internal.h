@@ -51,6 +51,12 @@ static v2 ParalaxOffset;
 static SpriteShelf Sprites;
 static AudioShelf Audio;
 static GameConfig Config;
+static GameState Game;
+
+/*static bool Started = false;
+static bool MusicStarted = false;
+static bool Freeze = false;
+static bool PlayerWon = false;*/
 
 // timings
 static DivisionCounter* GroundDivision;
@@ -64,10 +70,6 @@ static DivisionCounter* BgParalaxDivision;
 static int GroundIdx = 0;
 static int GroundOffset = 8;
 static v2 GridSize16x16 = {};
-static bool Started = false;
-static bool MusicStarted = false;
 static bool BgChanged = true;
-static bool Freeze = false;
-static bool PlayerWon = false;
 
 static const v2 WORLD_TILE_SIZE = v2{16, 16};

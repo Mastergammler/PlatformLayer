@@ -4,7 +4,7 @@
 
 void world_update(WorldGrid& grid)
 {
-    if (MusicStarted)
+    if (Game.current_state == LEVEL_STARTED)
     {
         if (BeatDivision->division_changed_this_frame)
         {
@@ -20,9 +20,10 @@ void world_update(WorldGrid& grid)
             else
             {
                 // end reached
-                PlayerWon = true;
+                Game.current_state = PLAYER_WON;
             }
         }
+        // TODO: player won state changes?
         if (GroundDivision->division_changed_this_frame)
         {
             GroundIdx = (++GroundIdx % NUM_FLOOR_TILES) + GroundOffset;
@@ -31,13 +32,13 @@ void world_update(WorldGrid& grid)
         {
             BgChanged = true;
         }
-        if (PixelDivision->division_changed_this_frame && !PlayerWon)
+        if (PixelDivision->division_changed_this_frame)
         {
             // we're starting at beat 1, but the offset should start at 0
             WorldOffset.x = -((PixelDivision->current_division - 1) %
                               World.tile_size.x);
         }
-        if (BgParalaxDivision->division_changed_this_frame && !PlayerWon)
+        if (BgParalaxDivision->division_changed_this_frame)
         {
             // TODO: dunno quite why but for some reason this has be positive to
             // seem to moving backwards?

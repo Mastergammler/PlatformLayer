@@ -4,6 +4,7 @@
 #include "collision.h"
 #include "draw.h"
 #include "player.h"
+#include "types.h"
 #include "world.h"
 
 void game_update()
@@ -21,24 +22,23 @@ void game_update()
 
     if (GameInputs.Help.pressed)
     {
-        Freeze = !Freeze;
-        if (Freeze)
+        if (Game.current_state == LEVEL_STARTED)
         {
-            // TODO: another state machine :O
-            // -> this interacts poorly now with reset etc
             SongClock.timer.time_scale = 0;
             timer_update(SongClock.timer);
             audio_stop_playback(&Audio.song);
+            Game.current_state = LEVEL_PAUSED;
         }
-        else
+        else if (Game.current_state == LEVEL_PAUSED)
         {
             audio_start_playback(Audio.song, false);
             SongClock.timer.time_scale = 1;
             timer_update(SongClock.timer);
+            Game.current_state = LEVEL_STARTED;
         }
     }
 
-    if (!Freeze)
+    if (Game.current_state == LEVEL_STARTED)
     {
         beat_update(SongClock);
         world_update(World);
@@ -53,7 +53,7 @@ void game_update()
     draw_ui();
 
     // start/reset audio
-    if (GameInputs.Restart.pressed)
+    if (GameInputs.Restart.pressed && Game.current_state != LEVEL_PAUSED)
     {
         World.start_index = 0;
         audio_stop_playback(&Audio.song);
@@ -61,9 +61,7 @@ void game_update()
         beat_reset(SongClock);
         audio_start_playback(Audio.song);
         GroundIdx = (++GroundIdx % 2) + GroundOffset;
-        MusicStarted = true;
-        Freeze = false;
-        PlayerWon = false;
+        Game.current_state = LEVEL_STARTED;
         logf("Level was reset");
     }
 

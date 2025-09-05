@@ -116,8 +116,7 @@ void player_idle_update(Player& player)
 void player_colliding_enter(Player& player)
 {
     audio_start_playback(Audio.hit);
-    Freeze = true;
-    MusicStarted = false;
+    Game.current_state = PLAYER_LOST;
     audio_stop_playback(&Audio.song);
 }
 

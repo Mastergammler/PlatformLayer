@@ -48,6 +48,7 @@ void player_init(Player& player,
     player.movement_speed = 100;
     player.collider = {};
     player.current_state = IDLE;
+    player.current_sprite = &player.states[IDLE].sprites->tiles[0];
 }
 
 void player_reset(Player& player, v2 gridSize)
