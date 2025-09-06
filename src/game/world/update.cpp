@@ -5,11 +5,11 @@
 
 void world_animate(WorldGrid& grid)
 {
-    if (GroundDivision->division_changed_this_frame)
+    if (GroundSubb->subb_changed_this_frame)
     {
         GroundIdx = (++GroundIdx % NUM_FLOOR_TILES) + GroundOffset;
     }
-    if (BgDivision->division_changed_this_frame)
+    if (BackgroundSubb->subb_changed_this_frame)
     {
         BgChanged = true;
     }
@@ -36,9 +36,9 @@ void world_animate(WorldGrid& grid)
         WorldTile* tile = &grid.tiles[idx];
         if (!tile->is_visible) continue;
 
-        if (tile->counter->division_changed_this_frame)
+        if (tile->counter->subb_changed_this_frame)
         {
-            tile->sprite_index = tile->counter->current_division % tile->animation_frames +
+            tile->sprite_index = tile->counter->current_subb % tile->animation_frames +
                                  tile->sheet_min_index;
             tile->current_sprite = &tile->sheet->tiles[tile->sprite_index];
         }

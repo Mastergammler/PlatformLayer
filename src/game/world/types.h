@@ -15,7 +15,7 @@ struct WorldTile
     int animation_frames;
 
     // TODO: hmm maybe it should be it's own thing / animator?
-    DivisionCounter* counter;
+    SubbeatCounter* counter;
     PixelBuffer* current_sprite;
     int sprite_index;
 };

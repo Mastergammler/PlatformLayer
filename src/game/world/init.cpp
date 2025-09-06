@@ -29,13 +29,13 @@ void world_init_tile(WorldTile& tile,
                      SpriteSheet* sheet,
                      int minIdx,
                      int count,
-                     float subdivision)
+                     float subsubb)
 {
     tile.sheet = sheet;
     tile.sheet_min_index = minIdx;
     tile.animation_frames = count;
 
-    tile.counter = beat_find_division(counter, subdivision);
+    tile.counter = beat_find_subb(counter, subsubb);
     tile.sprite_index = tile.sheet_min_index;
     tile.current_sprite = &sheet->tiles[tile.sprite_index];
 }

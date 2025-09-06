@@ -8,5 +8,5 @@ void world_init_tile(WorldTile& tile,
                      SpriteSheet* sheet,
                      int minIdx,
                      int maxIdx,
-                     float subdivision);
+                     float subsubb);
 void world_move(WorldGrid& grid);

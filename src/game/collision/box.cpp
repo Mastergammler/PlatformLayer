@@ -23,17 +23,11 @@ void collision_box_player(Player& player)
     v2 playerWorldPosition = screen_space_to_world_space(World,
                                                          playerGridPosition);
 
-    /* This is always true?!
-     * if (playerWorldPosition.x >= World.start_index &&
-        playerWorldPosition.x < World.start_index + World.visibile_tiles)*/
-
-    // TODO: actual type check here
-    // - we only start collision if the player is walking, not before
+    // TODO: actual collision handling based on height?
     if (World.tiles[playerWorldPosition.x].is_visible)
     {
         // ON COLLISION ENTER
-        if (!player.collider.collision_active &&
-            player.current_state == WALKING)
+        if (!player.collider.collision_active)
         {
             player.collider.collision_active = true;
             player.collider.collision_enter_frame = true;

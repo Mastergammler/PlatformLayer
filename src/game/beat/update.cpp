@@ -8,33 +8,33 @@ void beat_update(BeatCounter& clock)
     // TODO: i can mess up beat counting with the offset quite easily
     // -> especially for subdivisions
     assert(abs(clock.offset) < clock.time_per_beat);
-    for (int i = 0; i < clock.division_count; i++)
+    for (int i = 0; i < clock.subb_count; i++)
     {
-        DivisionCounter* div = &clock.divisions[i];
-        float divDec = (clock.elapsed + clock.offset) / div->time_per_division;
+        SubbeatCounter* div = &clock.subbs[i];
+        float divDec = (clock.elapsed + clock.offset) / div->time_per_subb;
         // NOTE: divDec is 0 based, so we don't need the +1 here!
-        if (divDec >= div->current_division)
+        if (divDec >= div->current_subb)
         {
-            div->current_division++;
-            div->division_changed_this_frame = true;
+            div->current_subb++;
+            div->subb_changed_this_frame = true;
         }
         else
         {
-            div->division_changed_this_frame = false;
+            div->subb_changed_this_frame = false;
         }
     }
 }
 
-DivisionCounter* beat_find_division(BeatCounter& clock, float divisionsPerBeat)
+SubbeatCounter* beat_find_subb(BeatCounter& clock, float subbsPerBeat)
 {
-    for (int i = 0; i < clock.division_count; i++)
+    for (int i = 0; i < clock.subb_count; i++)
     {
-        if (clock.divisions[i].divisions_per_beat == divisionsPerBeat)
-            return &clock.divisions[i];
+        if (clock.subbs[i].subbs_per_beat == subbsPerBeat)
+            return &clock.subbs[i];
     }
 
     ASSERT(false,
-           format("Subdivision for %.2f is not defined", divisionsPerBeat)
+           format("Subdivision for %.2f is not defined", subbsPerBeat)
                                                    .c_str());
     return {};
 }

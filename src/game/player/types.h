@@ -35,8 +35,8 @@ struct PlayerState
     int sprite_idx;
     int start_offset;
     SpriteSheet* sprites;
-    DivisionCounter* counter;
-    int elapsed_divisions;
+    SubbeatCounter* counter;
+    int elapsed_subbs;
 };
 
 struct Player

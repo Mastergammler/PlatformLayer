@@ -129,18 +129,18 @@ void game_init()
     GridSize16x16 = v2{Buffer.width / WORLD_TILE_SIZE.x,
                        Buffer.height / WORLD_TILE_SIZE.y};
     float groundDiv = 1.;
-    float pixelDivision = groundDiv * WORLD_TILE_SIZE.x;
-    float paralaxDivision = pixelDivision * 0.5;
+    float pixelsubb = groundDiv * WORLD_TILE_SIZE.x;
+    float paralaxsubb = pixelsubb * 0.5;
     float bpm = 112;
-    float divisions[] = {.5,
+    float subbs[] = {.5,
                          0.125,
                          2,
                          4,
                          8,
                          groundDiv,
-                         pixelDivision,
-                         paralaxDivision};
-    beat_init(SongClock, bpm, 4, divisions, 8);
+                         pixelsubb,
+                         paralaxsubb};
+    beat_init(SongClock, bpm, 4, subbs, 8);
     player_init(Ninja, SongClock, Sprites, GridSize16x16);
     Ninja.facing_forward = true;
     v2 playerPos = (Ninja.screen_position + Ninja.center_point) /
@@ -169,16 +169,16 @@ void game_init()
         world_add_tile(World, BoxTile, boxes[i] - 1 + playerPos.x);
     }
 
-    GroundDivision = beat_find_division(SongClock, groundDiv);
+    GroundSubb = beat_find_subb(SongClock, groundDiv);
     // NOTE: This has to match the paralax as well
     // -> Because else i just move it back and forth again
     // -> I only have 1 extra column to draw -> i could of change it to get more
     // leavay, but need a better system for this then
-    BgDivision = beat_find_division(SongClock, 0.5);
-    BeatDivision = beat_find_division(SongClock, 1);
-    MeasureDivision = beat_find_division(SongClock, 0.25);
-    PixelDivision = beat_find_division(SongClock, pixelDivision);
-    BgParalaxDivision = beat_find_division(SongClock, paralaxDivision);
+    BackgroundSubb = beat_find_subb(SongClock, 0.5);
+    BeatSubb = beat_find_subb(SongClock, 1);
+    MeasureSubb = beat_find_subb(SongClock, 0.25);
+    PixelSubb = beat_find_subb(SongClock, pixelsubb);
+    BgParalaxSubb = beat_find_subb(SongClock, paralaxsubb);
 
     GroundIdx = GroundOffset;
     beat_start(SongClock);

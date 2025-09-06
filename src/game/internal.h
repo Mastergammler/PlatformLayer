@@ -59,12 +59,12 @@ static bool Freeze = false;
 static bool PlayerWon = false;*/
 
 // timings
-static DivisionCounter* GroundDivision;
-static DivisionCounter* BgDivision;
-static DivisionCounter* BeatDivision;
-static DivisionCounter* MeasureDivision;
-static DivisionCounter* PixelDivision;
-static DivisionCounter* BgParalaxDivision;
+static SubbeatCounter* GroundSubb;
+static SubbeatCounter* BackgroundSubb;
+static SubbeatCounter* BeatSubb;
+static SubbeatCounter* MeasureSubb;
+static SubbeatCounter* PixelSubb;
+static SubbeatCounter* BgParalaxSubb;
 
 // TODO: move to game state general
 static int GroundIdx = 0;

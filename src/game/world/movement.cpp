@@ -2,7 +2,7 @@
 
 void world_move(WorldGrid& grid)
 {
-    if (BeatDivision->division_changed_this_frame)
+    if (BeatSubb->subb_changed_this_frame)
     {
         // TODO: this condition is kinda bad! This way of world movement
         // works poorly
@@ -23,18 +23,18 @@ void world_move(WorldGrid& grid)
     // we don't want to offset this on the last change
     if (Game.current_state != PLAYER_WON)
     {
-        if (PixelDivision->division_changed_this_frame)
+        if (PixelSubb->subb_changed_this_frame)
         {
             // we're starting at beat 1, but the offset should start at 0
-            WorldOffset.x = -((PixelDivision->current_division - 1) %
+            WorldOffset.x = -((PixelSubb->current_subb - 1) %
                               World.tile_size.x);
         }
-        if (BgParalaxDivision->division_changed_this_frame)
+        if (BgParalaxSubb->subb_changed_this_frame)
         {
             // TODO: dunno quite why but for some reason this has be
             // positive to seem to moving backwards?
             //-> Don't quite understand why yet
-            ParalaxOffset.x = (BgParalaxDivision->current_division - 1) %
+            ParalaxOffset.x = (BgParalaxSubb->current_subb - 1) %
                               World.tile_size.x;
         }
     }

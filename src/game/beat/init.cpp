@@ -1,37 +1,37 @@
 #include "../internal.h"
 
-#define DEFAULT_DIVISION_COUNT 2
-static float DEFAULT_DIVISIONS[] = {BEAT_DIVISIONS, MEASURE_DIVISIONS};
+#define DEFAULT_SUBB_COUNT 2
+static float DEFAULT_SUBBS[] = {BEAT_SUBBS, MEASURE_SUBBS};
 
 void beat_init(BeatCounter& clock,
                float bpm,
                int beatsPerMeasure,
-               float* divisions,
-               int divisionCount)
+               float* subbs,
+               int subbCount)
 {
     clock.bpm = bpm;
     clock.beats_per_measure = beatsPerMeasure;
     // clock.current_beat = 1;
     // clock.current_measure = 1;
     clock.time_per_beat = 60. / bpm;
-    clock.division_count = divisionCount + DEFAULT_DIVISION_COUNT;
-    clock.divisions = new DivisionCounter[clock.division_count]();
+    clock.subb_count = subbCount + DEFAULT_SUBB_COUNT;
+    clock.subbs = new SubbeatCounter[clock.subb_count]();
 
-    for (int i = 0; i < clock.division_count; i++)
+    for (int i = 0; i < clock.subb_count; i++)
     {
         // user defined devisions
-        if (i < divisionCount)
+        if (i < subbCount)
         {
-            clock.divisions[i].divisions_per_beat = divisions[i];
+            clock.subbs[i].subbs_per_beat = subbs[i];
         }
         else // default divisions
         {
-            clock.divisions[i].divisions_per_beat = DEFAULT_DIVISIONS
-                                                    [i - divisionCount];
+            clock.subbs[i].subbs_per_beat = DEFAULT_SUBBS
+                                                    [i - subbCount];
         }
-        clock.divisions[i].current_division = 1;
-        clock.divisions[i].time_per_division = clock.time_per_beat /
-                                               clock.divisions[i].divisions_per_beat;
+        clock.subbs[i].current_subb = 1;
+        clock.subbs[i].time_per_subb = clock.time_per_beat /
+                                               clock.subbs[i].subbs_per_beat;
     }
 }
 
@@ -40,9 +40,9 @@ void beat_start(BeatCounter& clock)
     timer_start(clock.timer);
 
     // init first beat changes
-    for (int i = 0; i < clock.division_count; i++)
+    for (int i = 0; i < clock.subb_count; i++)
     {
-        clock.divisions[i].division_changed_this_frame = true;
+        clock.subbs[i].subb_changed_this_frame = true;
     }
 }
 
@@ -52,10 +52,10 @@ void beat_reset(BeatCounter& clock)
     // clock.current_measure = 1;
 
     // init first beat changes
-    for (int i = 0; i < clock.division_count; i++)
+    for (int i = 0; i < clock.subb_count; i++)
     {
-        clock.divisions[i].current_division = 1;
-        clock.divisions[i].division_changed_this_frame = true;
+        clock.subbs[i].current_subb = 1;
+        clock.subbs[i].subb_changed_this_frame = true;
     }
 
     timer_start(clock.timer);

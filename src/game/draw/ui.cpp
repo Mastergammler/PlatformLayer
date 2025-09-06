@@ -13,8 +13,8 @@ void draw_ui()
         rendering_draw_text(Buffer,
                             Sprites.Font,
                             format("Beat: %i %i",
-                                   MeasureDivision->current_division,
-                                   (BeatDivision->current_division -
+                                   MeasureSubb->current_subb,
+                                   (BeatSubb->current_subb -
                                     1) % SongClock.beats_per_measure + 1),
                             v2{Buffer.width - 8, 8},
                             false);

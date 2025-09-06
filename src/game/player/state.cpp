@@ -39,7 +39,7 @@ StateBehaviour PLAYER_TRANSITIONS[PlayerStateIdCount] = {
 void set_animation_index(PlayerState* state)
 {
     // -1 because beats start at 1
-    state->sprite_idx = (state->counter->current_division - 1 +
+    state->sprite_idx = (state->counter->current_subb - 1 +
                          state->start_offset) %
                         state->sprites->tile_count;
 }
@@ -55,10 +55,10 @@ void player_transition_to(Player& player, PlayerStateId newState)
 
 void player_jump_enter(Player& player)
 {
-    player.states[JUMPING].sprite_idx = player.states[JUMPING].counter->current_division %
+    player.states[JUMPING].sprite_idx = player.states[JUMPING].counter->current_subb %
                                         player.states[JUMPING].sprites->tile_count;
 
-    player.states[JUMPING].elapsed_divisions = 0;
+    player.states[JUMPING].elapsed_subbs = 0;
     player.screen_position.y -= WORLD_TILE_SIZE.y;
     audio_start_playback(Audio.jump);
 }
@@ -71,14 +71,27 @@ void player_jump_exit(Player& player)
 
 void player_jump_update(Player& player)
 {
-    PlayerState* state = &player.states[player.current_state];
-    if (state->counter->division_changed_this_frame)
+    if (player.collider.collision_enter_frame)
     {
+        // we don't collide while in air
+        // TODO: this is a bit strange, now we're bascially just battling the
+        // collision system
+        // -> But generally the collision system has to decide based on
+        // something
+        // => And this might be the player position, or state, so this is not
+        // incorrectly set
+        player.collider.collision_enter_frame = false;
+        player.collider.collision_active = false;
+    }
+
+    PlayerState* state = &player.states[player.current_state];
+    if (state->counter->subb_changed_this_frame)
+    {
+        state->elapsed_subbs++;
         if ((GameInputs.Jump.is_down &&
-             state->elapsed_divisions < player.jump_max) ||
-            state->elapsed_divisions < player.jump_min)
+             state->elapsed_subbs <= player.jump_max) ||
+            state->elapsed_subbs <= player.jump_min)
         {
-            state->elapsed_divisions++;
             set_animation_index(state);
         }
         else
@@ -90,16 +103,24 @@ void player_jump_update(Player& player)
 
 void player_attack_enter(Player& player)
 {
-    player.states[ATTACKING].elapsed_divisions = 0;
+    player.states[ATTACKING].elapsed_subbs = 0;
     player.states[ATTACKING].sprite_idx = 0;
     audio_start_playback(Audio.sword);
 }
 
 void player_attack_update(Player& player)
 {
+    // TODO: collision handling should be maybe global? General????
+    // -> handled in the collision system?
+    if (player.collider.collision_enter_frame)
+    {
+        player_transition_to(player, COLLIDING);
+        return;
+    }
+
     PlayerState* state = &player.states[player.current_state];
     // animation cancel logic - restrict attack to minimum?
-    if (GameInputs.Right.pressed && state->elapsed_divisions >= 2)
+    if (GameInputs.Right.pressed && state->elapsed_subbs >= 2)
     {
         player_transition_to(player, ATTACKING);
     }
@@ -107,14 +128,10 @@ void player_attack_update(Player& player)
     {
         player_transition_to(player, JUMPING);
     }
-    else if (state->counter->division_changed_this_frame)
+    else if (state->counter->subb_changed_this_frame)
     {
-        // FIXME: somehow the 5th animation frame is also shown
-        //-> when i put this to 4, which is strange ...
-        //=> Not quite sure what's going on here
-        if (state->elapsed_divisions < 4)
+        if (++state->elapsed_subbs < 4)
         {
-            state->elapsed_divisions++;
             state->sprite_idx = ++state->sprite_idx %
                                 state->sprites->tile_count;
         }
@@ -142,7 +159,7 @@ void player_walking_update(Player& player)
     else
     {
         PlayerState* state = &player.states[player.current_state];
-        if (state->counter->division_changed_this_frame)
+        if (state->counter->subb_changed_this_frame)
         {
             // TEST: not 100% sure if that is right, it seems to
             // start on idx 6 when logging -> need better debug tools
@@ -154,7 +171,7 @@ void player_walking_update(Player& player)
 void player_idle_update(Player& player)
 {
     PlayerState* state = &player.states[player.current_state];
-    if (state->counter->division_changed_this_frame)
+    if (state->counter->subb_changed_this_frame)
     {
         set_animation_index(state);
     }
@@ -162,10 +179,11 @@ void player_idle_update(Player& player)
 
 void player_colliding_enter(Player& player)
 {
+    audio_stop_all();
     audio_start_playback(Audio.hit);
     audio_start_playback(Audio.box);
+    set_animation_index(&player.states[COLLIDING]);
     Game.current_state = PLAYER_LOST;
-    audio_stop_playback(&Audio.song);
 }
 
 void player_colliding_update(Player& player)

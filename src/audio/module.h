@@ -15,6 +15,7 @@ void audio_dispose();
 void audio_load_sound(Audio& sound, std::string file);
 void audio_start_playback(Playback pb, bool resetToStart = true);
 void audio_stop_playback(Playback* pb);
+void audio_stop_all();
 
 extern std::atomic<int> AudioEvent;
 extern std::atomic<int> FramesPassed;

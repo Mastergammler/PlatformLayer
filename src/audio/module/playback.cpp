@@ -1,6 +1,6 @@
 #include "../internal.h"
 
-#define MAX_CONCURRENT_SOUNDS 4
+#define MAX_CONCURRENT_SOUNDS 6
 PlaybackPool Playbacks = {new Playback[MAX_CONCURRENT_SOUNDS](),
                           MAX_CONCURRENT_SOUNDS};
 
@@ -44,4 +44,18 @@ void audio_stop_playback(Playback* pb)
          "found",
          pb->data->file.c_str(),
          pb->playback_id);
+}
+
+/**
+ * This will stop all audio, but will not reset playback states
+ */
+void audio_stop_all()
+{
+    for (int i = 0; i < Playbacks.max_size; i++)
+    {
+        if (Playbacks.data[i].is_playing)
+        {
+            Playbacks.data[i].is_playing = false;
+        }
+    }
 }

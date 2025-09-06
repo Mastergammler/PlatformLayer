@@ -3,17 +3,17 @@
 #include "../../timing/module.h"
 #include "../module.h"
 
-#define BEAT_DIVISIONS 1
-#define MEASURE_DIVISIONS 0.25
+#define BEAT_SUBBS 1
+#define MEASURE_SUBBS 0.25
 
-struct DivisionCounter
+struct SubbeatCounter
 {
-    bool division_changed_this_frame;
-    u32 current_division;
+    bool subb_changed_this_frame;
+    u32 current_subb;
 
     /** unit: s */
-    float time_per_division;
-    float divisions_per_beat;
+    float time_per_subb;
+    float subbs_per_beat;
 };
 
 struct BeatCounter
@@ -29,8 +29,8 @@ struct BeatCounter
     // u32 current_measure;
     int beats_per_measure;
 
-    int division_count;
-    DivisionCounter* divisions;
+    int subb_count;
+    SubbeatCounter* subbs;
     Clock timer;
 
     // TODO: add pointer to audio file?

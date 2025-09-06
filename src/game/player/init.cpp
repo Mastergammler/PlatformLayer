@@ -14,27 +14,27 @@ void player_init(Player& player,
                            0,
                            0,
                            &shelf.PlayerIdle,
-                           beat_find_division(counter, 2.)};
+                           beat_find_subb(counter, 2.)};
     player.states[WALKING] = {WALKING,
                               0,
                               5,
                               &shelf.PlayerWalking,
-                              beat_find_division(counter, 8.)};
+                              beat_find_subb(counter, 8.)};
     player.states[JUMPING] = {JUMPING,
                               0,
                               1,
                               &shelf.PlayerJump,
-                              beat_find_division(counter, 2.)};
+                              beat_find_subb(counter, 2.)};
     player.states[COLLIDING] = {COLLIDING,
                                 0,
-                                0,
+                                1,
                                 &shelf.PlayerCollision,
-                                beat_find_division(counter, 2.)};
+                                beat_find_subb(counter, 2.)};
     player.states[ATTACKING] = {ATTACKING,
                                 0,
                                 0,
                                 &shelf.PlayerAttack,
-                                beat_find_division(counter, 8.)};
+                                beat_find_subb(counter, 8.)};
 
     // we draw from upper left corner, so offset for x would be negative for
     v2 tileOffset = v2{-(WORLD_TILE_SIZE.x / 2), WORLD_TILE_SIZE.y};
