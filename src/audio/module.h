@@ -26,8 +26,10 @@ extern std::atomic<int> FramesPassed;
  */
 extern float MasterVolume;
 
-u16 clip(int32_t sample);
-u16 mix_and_clip(u16 a, u16 b);
+u16 clip(int64_t sample);
+u16 mix_defensively(u16 a, u16 b);
+u16 mix_inverse_clipping(u16 a, u16 b);
+u16 mix_q15_soft_clipping(u16 a, u16 b);
 u16 adjust_volume(u16 sample, float factor);
 
 float volume_to_gain(float sliderValue);

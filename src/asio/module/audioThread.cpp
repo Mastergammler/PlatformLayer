@@ -9,10 +9,11 @@
 #define MASTER_LEVEL 0.35
 // TODO: We're assuming only 2 channels to be output at the same time
 //  -> if the user has more, we ignore the others and only take the first two
-#define OUTPUT_CHANNELS 2
+#define SUPPORTED_OUTPUT_CHANNELS 2
 
 float convert_PCM16_to_float(u16 sample)
 {
+    // PERF: float divides are especially slow, is this an issue here?
     int16_t singed = sample;
     return (float)singed / (INT16_MAX + 1);
 }
@@ -30,7 +31,7 @@ void bufferSwitch(long index, ASIOBool processNow)
     // zero out buffer, before new mixing
     // -> can be optimized?
     u16* out = MixBuffer;
-    for (int i = 0; i < BufferSize * OUTPUT_CHANNELS; i++)
+    for (int i = 0; i < BufferSize * SUPPORTED_OUTPUT_CHANNELS; i++)
     {
         out[i] = 0;
     }
@@ -116,7 +117,7 @@ void bufferSwitch(long index, ASIOBool processNow)
                         u16 sample = cur->data->pcm_data[i +
                                                          sampleStartPosition];
                         u16 adjustedSample = adjust_volume(sample, cur->volume);
-                        out[i] = mix_and_clip(out[i], adjustedSample);
+                        out[i] = mix_q15_soft_clipping(out[i], adjustedSample);
                     }
 
                     // for looping
@@ -124,19 +125,15 @@ void bufferSwitch(long index, ASIOBool processNow)
                     {
                         u16 sample = cur->data->pcm_data[i];
                         u16 adjustedSample = adjust_volume(sample, cur->volume);
-                        out[i +
-                            audioSamplesToPlay] = mix_and_clip(out[i +
-                                                                   audioSamplesToPlay],
-                                                               adjustedSample);
+                        out[i + audioSamplesToPlay] = mix_q15_soft_clipping(
+                                                                out[i +
+                                                                    audioSamplesToPlay],
+                                                                adjustedSample);
                     }
                 }
 
                 if (nextCursorPosition >= cursorEnd)
                 {
-                    /*logf("Stopping audio: c%i nextc%i loop %d, %i samples
-                       left", cur->cursor_position, nextCursorPosition,
-                         cur->loop,
-                         samplesLeftInPlaybackBuffer);*/
                     cur->is_playing = false;
                     cur->cursor_position = 0;
                 }
@@ -148,7 +145,7 @@ void bufferSwitch(long index, ASIOBool processNow)
         }
     }
 
-    for (int i = 0; i < OUTPUT_CHANNELS; i++)
+    for (int i = 0; i < SUPPORTED_OUTPUT_CHANNELS; i++)
     {
         // logf("Writing output channel %i", i);
         float* curOut = (float*)ChannelBuffers[i + InputChannels]
@@ -157,8 +154,8 @@ void bufferSwitch(long index, ASIOBool processNow)
         // input is interleaved 0 1 2 0 1 2 0 1 2 eg
         // -> we need to convert it for each buffer
         long outS = 0;
-        for (long interS = i; interS < BufferSize * OUTPUT_CHANNELS;
-             interS += OUTPUT_CHANNELS)
+        for (long interS = i; interS < BufferSize * SUPPORTED_OUTPUT_CHANNELS;
+             interS += SUPPORTED_OUTPUT_CHANNELS)
         {
             float outputSample = convert_PCM16_to_float(MixBuffer[interS]);
             curOut[outS++] = MASTER_LEVEL * outputSample;

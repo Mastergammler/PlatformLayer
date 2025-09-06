@@ -10,36 +10,6 @@ ma_audio_buffer* Buffers;
 atomic<int> AudioEvent(0);
 atomic<int> FramesPassed(0);
 
-#define UNSIGNED_CONVERSION 32678
-
-u16 clip(int32_t sample)
-{
-    if (sample > UINT16_MAX)
-        sample = UINT16_MAX;
-    else if (sample < -UNSIGNED_CONVERSION)
-        sample = -UNSIGNED_CONVERSION;
-
-    return (u16)sample;
-}
-
-u16 mix_and_clip(u16 a, u16 b)
-{
-    // convert to signed
-    int16_t s1 = (int16_t)a;
-    int16_t s2 = (int16_t)b;
-
-    int32_t mixed = s1 / 2 + s2 / 2;
-    return clip(mixed);
-}
-
-u16 adjust_volume(u16 sample, float factor)
-{
-    int16_t value = (int16_t)sample;
-    int32_t adjusted = value * factor;
-
-    return clip(adjusted);
-}
-
 // FIXME: there seems to be a lag on the second run if looping is enabled
 //  -> it seems like on buffer switch there are some samples dropped or
 //  something
@@ -115,7 +85,7 @@ void data_callback(ma_device* device,
                     {
                         u16 sample = cur->data->pcm_data[i + samplesReadBefore];
                         u16 adjustedSample = adjust_volume(sample, cur->volume);
-                        out[i] = mix_and_clip(out[i], adjustedSample);
+                        out[i] = mix_defensively(out[i], adjustedSample);
                     }
                 }
 

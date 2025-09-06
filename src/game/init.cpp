@@ -120,11 +120,14 @@ void game_init()
     audio_load_sound(Audio.pcm_land, "res/audio/fx_land.wav");
     audio_load_sound(Audio.pcm_box, "res/audio/fx_box.wav");
     audio_load_sound(Audio.pcm_sword, "res/audio/fx_sword.wav");
+    // TODO: how to scale these values correctly?
+    //-> Do it in db maybe?
     Audio.song.loop = false;
-    Audio.jump.volume = 1;
-    Audio.land.volume = 1.4;
-    Audio.song.volume = 0.7;
+    Audio.jump.volume = 0.6;
+    Audio.land.volume = 0.8;
+    Audio.song.volume = 0.5;
     Audio.box.volume = 0.5;
+    Audio.sword.volume = 0.35;
 
     GridSize16x16 = v2{Buffer.width / WORLD_TILE_SIZE.x,
                        Buffer.height / WORLD_TILE_SIZE.y};
@@ -132,14 +135,7 @@ void game_init()
     float pixelsubb = groundDiv * WORLD_TILE_SIZE.x;
     float paralaxsubb = pixelsubb * 0.5;
     float bpm = 112;
-    float subbs[] = {.5,
-                         0.125,
-                         2,
-                         4,
-                         8,
-                         groundDiv,
-                         pixelsubb,
-                         paralaxsubb};
+    float subbs[] = {.5, 0.125, 2, 4, 8, groundDiv, pixelsubb, paralaxsubb};
     beat_init(SongClock, bpm, 4, subbs, 8);
     player_init(Ninja, SongClock, Sprites, GridSize16x16);
     Ninja.facing_forward = true;

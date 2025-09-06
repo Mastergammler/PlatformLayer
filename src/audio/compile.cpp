@@ -2,4 +2,5 @@
 #include "module/init.cpp"
 #include "module/loading.cpp"
 #include "module/playback.cpp"
+#include "module/pcm16_dsp.cpp"
 #include "module/volume.cpp"
