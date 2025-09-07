@@ -1,30 +1,65 @@
 #include "../internal.h"
 
 #define MAX_CONCURRENT_SOUNDS 6
+#define INDEX_TRACK_INIT -1
 PlaybackPool Playbacks = {new Playback[MAX_CONCURRENT_SOUNDS](),
                           MAX_CONCURRENT_SOUNDS};
 
-void audio_start_playback(Playback pb, bool resetToStart)
+/**
+ * Schedules the next audio in an open slot
+ * If no open slots if found, an old sound will be aborted
+ * UNLESS it's marked with the 'keep_alive' flag
+ *
+ * TEST: does this work well with other sounds, are there any longer fx?
+ *  -> would these than just need to be 'keep_alive' ?
+ * => First impression is, that it works very nicely
+ */
+void audio_start_playback(Playback newPlayback, bool resetToStart)
 {
+    int longestPlayingIdx = INDEX_TRACK_INIT;
+    int furthestCursor = 0;
+
     for (int i = 0; i < Playbacks.max_size; i++)
     {
         if (!Playbacks.data[i].is_playing)
         {
             // TODO: not thread safe, but just a bool so it's probably fine?
             //  -> but i'm also updating the whole object here?
-            Playbacks.data[i] = pb;
+            Playbacks.data[i] = newPlayback;
             if (resetToStart)
             {
                 Playbacks.data[i].cursor_position = 0;
             }
             Playbacks.data[i].is_playing = true;
-
             return;
+        }
+        else if (!Playbacks.data[i].keep_alive)
+        {
+            int currentCursor = Playbacks.data[i].cursor_position;
+            if (longestPlayingIdx == INDEX_TRACK_INIT ||
+                currentCursor > furthestCursor)
+            {
+                longestPlayingIdx = i;
+                furthestCursor = currentCursor;
+            }
         }
     }
 
-    logf("Unable to play audio '%s' because no open slots found",
-         pb.data->file.c_str());
+    if (longestPlayingIdx != INDEX_TRACK_INIT)
+    {
+        Playbacks.data[longestPlayingIdx] = newPlayback;
+        if (resetToStart)
+        {
+            Playbacks.data[longestPlayingIdx].cursor_position = 0;
+        }
+        Playbacks.data[longestPlayingIdx].is_playing = true;
+    }
+    else
+    {
+        logf("Unable to play audio '%s' because no open or cancelable slots "
+             "found",
+             newPlayback.data->file.c_str());
+    }
 }
 
 void audio_stop_playback(Playback* pb)

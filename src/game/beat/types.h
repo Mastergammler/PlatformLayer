@@ -20,7 +20,7 @@ struct BeatCounter
 {
     float bpm;
     /** unit: s */
-    float elapsed;
+    double elapsed;
     /** unit: s */
     float offset;
     /** unit: s */

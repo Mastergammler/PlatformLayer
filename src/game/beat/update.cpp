@@ -11,7 +11,10 @@ void beat_update(BeatCounter& clock)
     for (int i = 0; i < clock.subb_count; i++)
     {
         SubbeatCounter* div = &clock.subbs[i];
-        float divDec = (clock.elapsed + clock.offset) / div->time_per_subb;
+        // FIXME: this seems to drift a bit towards the end of the song
+        //-> we're loosing precision, with double it seems to work for now
+        //=> But it's probably not a perfect solution
+        double divDec = (clock.elapsed + clock.offset) / div->time_per_subb;
         // NOTE: divDec is 0 based, so we don't need the +1 here!
         if (divDec >= div->current_subb)
         {
@@ -34,7 +37,6 @@ SubbeatCounter* beat_find_subb(BeatCounter& clock, float subbsPerBeat)
     }
 
     ASSERT(false,
-           format("Subdivision for %.2f is not defined", subbsPerBeat)
-                                                   .c_str());
+           format("Subdivision for %.2f is not defined", subbsPerBeat).c_str());
     return {};
 }

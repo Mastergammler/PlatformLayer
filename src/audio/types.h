@@ -24,14 +24,17 @@ struct Playback
 {
     Audio* data;
     int playback_id;
-    bool is_playing;
     bool loop;
+
+    /* will not be canceled */
+    bool keep_alive;
     int cursor_position;
 
     /* Between 0 and 1? */
     float volume = 1;
     /* do this in here? */
     float pan;
+    bool is_playing;
 };
 
 struct PlaybackPool

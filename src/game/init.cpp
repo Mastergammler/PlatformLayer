@@ -123,11 +123,11 @@ void game_init()
     // TODO: how to scale these values correctly?
     //-> Do it in db maybe?
     Audio.song.loop = false;
-    Audio.jump.volume = 0.6;
+    Audio.jump.volume = 0.5;
     Audio.land.volume = 0.8;
     Audio.song.volume = 0.5;
     Audio.box.volume = 0.5;
-    Audio.sword.volume = 0.35;
+    Audio.sword.volume = 0.3;
 
     GridSize16x16 = v2{Buffer.width / WORLD_TILE_SIZE.x,
                        Buffer.height / WORLD_TILE_SIZE.y};
