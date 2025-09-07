@@ -1,6 +1,4 @@
 #include "../internal.h"
-#include <cassert>
-#include <cstdint>
 
 // TODO: is it initialized correctly?
 // TODO: handle Interleaved vs output channel wise conversion
@@ -10,6 +8,8 @@
 // TODO: We're assuming only 2 channels to be output at the same time
 //  -> if the user has more, we ignore the others and only take the first two
 #define SUPPORTED_OUTPUT_CHANNELS 2
+
+static int BufferCallbackCount = 0;
 
 float convert_PCM16_to_float(u16 sample)
 {
@@ -27,6 +27,19 @@ float convert_PCM16_to_float(u16 sample)
  */
 void bufferSwitch(long index, ASIOBool processNow)
 {
+    timer_update(AT_Timer);
+    float timeSinceLastUpdateS = AT_Timer.delta_time_real;
+
+    BufferCallbackCount++;
+    int writerIndex = PerformanceInfo.writer_index.load();
+    if (writerIndex >= PerformanceInfo.buffer_size)
+    {
+        writerIndex = 0;
+    }
+    AtPerformanceInfo* info = &PerformanceInfo.info_buffer[writerIndex++];
+    info->measure_finished = false;
+    info->iteration = BufferCallbackCount;
+    info->time_since_last_callback = timeSinceLastUpdateS;
 
     // zero out buffer, before new mixing
     // -> can be optimized?
@@ -88,7 +101,8 @@ void bufferSwitch(long index, ASIOBool processNow)
                 {
                     if (AudioEvent.load() == 0)
                     {
-                        AudioEvent.fetch_or(AUDIO_START, memory_order_acq_rel);
+                        AudioEvent.fetch_or(AUDIO_START,
+                                            std::memory_order_acq_rel);
                         AudioEvent.fetch_or(AUDIO_START);
                     }
                     // first sound should override old buffer data!
@@ -161,6 +175,20 @@ void bufferSwitch(long index, ASIOBool processNow)
             curOut[outS++] = MASTER_LEVEL * outputSample;
         }
     }
+    float dspTimeMs = time_since_update(AT_Timer);
+    info->dsp_time = dspTimeMs;
+
+    // only the audio thread is allowed to write this value
+    // this is why we use relaxed, the other threads just read this
+    PerformanceInfo.writer_index.store(writerIndex, std::memory_order_relaxed);
+
+    // we loose the guarantee, that this flag will be set before the other
+    // thread reads it
+    // -> that means we are might detecting additional x-runs
+    // => But this is likely a marginal issue
+    // - Also the other way around is worse, because we have no guarantee,
+    // that the cursor was moved on ...
+    info->measure_finished = true;
 }
 
 ASIOTime* bufferSwitchTimeInfo(ASIOTime* params,

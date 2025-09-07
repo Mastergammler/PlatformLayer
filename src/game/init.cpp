@@ -3,6 +3,7 @@
 #include "beat.h"
 #include "player.h"
 #include "world.h"
+#include <atomic>
 
 NamedValue find_config_value(ConfigStore configValues, string name)
 {
@@ -178,6 +179,29 @@ void game_init()
 
     GroundIdx = GroundOffset;
     beat_start(SongClock);
+
+    // audio perf log
+    int startIndex = PerformanceInfo.reader_index;
+    int writerIndex = PerformanceInfo.writer_index.load(
+                                            std::memory_order_relaxed);
+    int readCount = 16;
+
+    // TODO: merry go round bug, i could do something silly
+    if (startIndex + readCount >= writerIndex)
+    {
+        readCount = startIndex + readCount - writerIndex;
+    }
+    int itemsRead = 0;
+    for (int i = startIndex; itemsRead < readCount; i++)
+    {
+        if (i >= PerformanceInfo.buffer_size) i = 0;
+        AtPerformanceInfo cur = PerformanceInfo.info_buffer[i];
+        logf("AT Perf: %i, %.3f ms (cb time), %.3f ms (dsp time)",
+             cur.iteration,
+             cur.time_since_last_callback * 1000,
+             cur.dsp_time);
+        itemsRead++;
+    }
 
     float elapsed = time_since_start(timer);
     logf("| %.1f ms | Game initialization", elapsed);

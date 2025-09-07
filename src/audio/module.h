@@ -1,12 +1,14 @@
 #pragma once
 
 #include "../define.h"
+#include "../timing/types.h"
 #include "events.h"
 #include "types.h"
 #include <atomic>
 #include <string>
 
 extern PlaybackPool Playbacks;
+extern PerformanceInfoBuffer PerformanceInfo;
 
 void audio_init();
 void audio_update();
@@ -19,6 +21,7 @@ void audio_stop_all();
 
 extern std::atomic<int> AudioEvent;
 extern std::atomic<int> FramesPassed;
+extern Clock AT_Timer;
 
 /*
  * Master volume factor logarithmically scaled

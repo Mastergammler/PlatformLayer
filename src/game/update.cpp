@@ -38,6 +38,24 @@ void game_update()
         }
     }
 
+    // log previous 16 entries
+    if (GameInputs.Action.pressed)
+    {
+        int readCount = 16;
+        int writerIndex = PerformanceInfo.writer_index.load();
+        int startIdx = writerIndex - readCount;
+        if (startIdx < 0) startIdx = 0;
+
+        for (int i = startIdx; i < writerIndex; i++)
+        {
+            AtPerformanceInfo cur = PerformanceInfo.info_buffer[i];
+            logf("AT Perf: %i, %.3f ms (cb time), %.3f ms (dsp time)",
+                 cur.iteration,
+                 cur.time_since_last_callback * 1000,
+                 cur.dsp_time);
+        }
+    }
+
     if (Game.current_state == LEVEL_STARTED || Game.current_state == PLAYER_WON)
     {
         beat_update(SongClock);

@@ -26,3 +26,5 @@ void data_callback(ma_device* device,
                    void* output,
                    const void* input,
                    ma_uint32 frameCount);
+
+void init_via_miniaudio();

@@ -42,3 +42,35 @@ struct PlaybackPool
     Playback* data;
     int max_size;
 };
+
+struct AtPerformanceInfo
+{
+    int iteration;
+    /* unit s */
+    float time_since_last_callback;
+    /* unit ms */
+    float dsp_time;
+
+    // check in case didn't finish (XRun)
+    bool measure_finished;
+};
+
+struct PerformanceInfoBuffer
+{
+    /*
+     * usually audio thread
+     * do not modify from game thread
+     * audio thread modifies atomic
+     * audio thread does not need to read atomic
+     */
+    std::atomic<int> writer_index;
+
+    /*
+     * usually game thread
+     * audio thread doesn't touch this one
+     */
+    int reader_index;
+
+    AtPerformanceInfo* info_buffer;
+    int buffer_size;
+};
